@@ -1,0 +1,14 @@
+{
+    "name": "RangingWrapper",
+    "version": "1.0.2",
+    "description": "repository for easier and better operation of sx1280 lora bases trilateration ",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DaniielZ/meteocs-cansat/tree/main/RANGING_LIB"
+    },
+    "dependencies": {
+        "jgromes/RadioLib": "^6.0.0"
+    },
+    "frameworks": "*",
+    "platforms": "*"
+}

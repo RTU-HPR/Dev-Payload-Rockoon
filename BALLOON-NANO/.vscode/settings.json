@@ -1,0 +1,17 @@
+{
+  "cSpell.words": [
+    "averager",
+    "averagers",
+    "Cansat",
+    "RADIOLIB",
+    "trilaterate"
+  ],
+  "cmake.configureOnOpen": false,
+  "files.associations": {
+    "*.tcc": "cpp",
+    "unordered_map": "cpp",
+    "numeric": "cpp",
+    "ostream": "cpp",
+    "new": "cpp"
+  }
+}

@@ -1,0 +1,11 @@
+FileSystem init error
+Failed opening flash file
+Final path: /CANSAT0.txt
+Current size:0/524300
+ INIT STATUS: Flash ready?:1 | Lora ready?:1
+Failed opening flash file
+log init done
+sensor status  IMU error
+Failed opening flash file
+init done, waiting for arm
+Failed opening flash file

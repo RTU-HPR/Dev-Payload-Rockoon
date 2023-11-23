@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:/Users/matis/Documents/VSC Projects/meteocs-cansat/BALLOON-BASESTATION/.pio/libdeps/pico/RadioLib/src",
+                "C:/Users/matis/.platformio/packages/framework-arduinopico/cores/rp2040",
+                "C:/Users/matis/.platformio/packages/framework-arduinopico/pico-sdk/lib/lwip/src/include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "compilerPath": "C:/Users/matis/.platformio/packages/toolchain-rp2040-earlephilhower/bin/arm-none-eabi-gcc.exe",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "windows-gcc-arm"
+        }
+    ],
+    "version": 4
+}
