@@ -1,13 +1,13 @@
 #pragma once
 #include <SPI.h>
-#include <RadioLib.h>
+#include <RadioLib_wrapper.h>
 #include <Arduino.h>
 #include "config.h"
 
 class Log
 {
 private:
-    RFM_Wrapper _com_lora;
+    RadioLib_Wrapper<RFM96> *_com_lora;
     String _telemetry_log_file_path_final;
     String _info_log_file_path_final;
     String _error_log_file_path_final;

@@ -4,7 +4,7 @@
 #include <LittleFS.h>
 #include <SDFS.h>
 #include <ranging_wrapper.h>
-#include <RFM_Wrapper.h>
+#include <RadioLib_wrapper.h>
 
 class Config
 {
@@ -42,18 +42,21 @@ public:
     const bool LOG_TO_STORAGE = true;
     
     // 433 MHz LoRa
-    RFM_Wrapper com_lora;
-    RFM_Wrapper::Lora_Device com_config = {.FREQUENCY = 434.5,
-                                        .CS = 5,
-                                        .DIO0 = 7,
-                                        .DIO1 = 8,
-                                        .RESET = 6,
-                                        .SYNC_WORD = 0xF4,
-                                        .TXPOWER = 14,
-                                        .SPREADING = 10,
-                                        .CODING_RATE = 7,
-                                        .SIGNAL_BW = 125,
-                                        .SPI = &SPI};
+    struct COM_CONFIG
+    {
+        float FREQUENCY = 434.5;
+        int CS = 5;
+        int DIO0 = 7;
+        int DIO1 = 8;
+        int RESET = 6;
+        int SYNC_WORD = 0xF4;
+        int TXPOWER = 14;
+        int SPREADING = 10;
+        int CODING_RATE = 7;
+        float SIGNAL_BW = 125;
+    };
+
+    COM_CONFIG com_config;
 
     // Ranging 2.4 GHZ LoRa
     Ranging_Wrapper::Ranging_Slave RANGING_SLAVES[3] = {{.position = {0, 0, 0}, .address = 0x12345678},
