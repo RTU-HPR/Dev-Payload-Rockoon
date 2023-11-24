@@ -2,15 +2,18 @@
 #include <RadioLib.h>
 #include <Arduino.h>
 
-/**
- * @brief Set the flag that a message has been received
- */
-void set_receive_flag(void);
+namespace RadioLib_interrupts
+{
+    /**
+     * @brief Set the flag that a message has been received
+     */
+    void set_receive_flag(void);
 
-/**
- * @brief Set the flag that a message has been sent
- */
-void set_transmit_flag(void);
+    /**
+     * @brief Set the flag that a message has been sent
+     */
+    void set_transmit_flag(void);
+}
 
 template <typename T>
 class RadioLib_Wrapper
