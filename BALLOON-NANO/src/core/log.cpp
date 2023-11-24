@@ -189,10 +189,8 @@ bool Log::send_com_lora(String msg, Config &config)
 void Log::receive_com_lora(String &msg, float &rssi, float &snr, Config &config)
 {
     // Get data from LoRa
-    if (!_com_lora->receive(msg, rssi, snr))
-    {
-        msg = "";
-    }
+    _com_lora->receive(msg, rssi, snr);
+    Serial.println("Message received: " + msg);
 }
 
 // Sends a message over LoRa and logs the message to the info file
@@ -202,7 +200,7 @@ void Log::send_info(String msg, Config &config)
     Serial.println("! " + msg);
 
     int state = send_com_lora(msg, config);
-    if (state == RADIOLIB_ERR_NONE)
+    if (state != RADIOLIB_ERR_NONE)
     {
         Serial.println("Transmit error: " + String(state));
     }
@@ -218,7 +216,7 @@ void Log::send_error(String msg, Config &config)
     Serial.println("!!! " + msg);
 
     int state = send_com_lora(msg, config);
-    if (state == RADIOLIB_ERR_NONE)
+    if (state != RADIOLIB_ERR_NONE)
     {
         Serial.println("Transmit error: " + String(state));
     }
@@ -231,7 +229,7 @@ void Log::send_error(String msg, Config &config)
 void Log::transmit_data(Config &config)
 {
     int state = send_com_lora(_sendable_packet, config);
-    if (state == RADIOLIB_ERR_NONE)
+    if (state != RADIOLIB_ERR_NONE)
     {
         Serial.println("Transmit error: " + String(state));
     }

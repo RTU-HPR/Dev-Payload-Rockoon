@@ -1,26 +1,30 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include "ranging_wrapper.h"
-#include "RFM_wrapper.h"
-bool transmiting_mode = false; // dont change
+#include <RadioLib_wrapper.h>
 
 String ARM_MSG = "arm_confirm";
 String DATA_MSG = "data_send";
 String DATA_STOP_MSG = "data_stop";
 String HEATER_ENABLE = "heater_enable";
 
-RFM_Wrapper com_lora;
-RFM_Wrapper::Lora_Device com_config = {.FREQUENCY = 434.5,
-                                       .CS = 7,
-                                       .DIO0 = 5,
-                                       .DIO1 = 4,
-                                       .RESET = 6,
-                                       .SYNC_WORD = 0xF4,
-                                       .TXPOWER = 14,
-                                       .SPREADING = 10,
-                                       .CODING_RATE = 7,
-                                       .SIGNAL_BW = 125,
-                                       .SPI = &SPI1};
+RadioLib_Wrapper<RFM96> *com_lora;
+struct COM_CONFIG
+{
+    float FREQUENCY = 434.5;
+    int CS = 7;
+    int DIO0 = 5;
+    int DIO1 = 4;
+    int RESET = 6;
+    int SYNC_WORD = 0xF4;
+    int TXPOWER = 14;
+    int SPREADING = 10;
+    int CODING_RATE = 7;
+    float SIGNAL_BW = 125;
+    HardwareSPI *SPI_BUS = &SPI1;
+};
+
+COM_CONFIG com_config;
 
 Ranging_Wrapper::Mode LORA2400_MODE = Ranging_Wrapper::Mode::SLAVE;
 Ranging_Wrapper ranging_lora;
@@ -39,20 +43,20 @@ Ranging_Wrapper::Lora_Device ranging_device = {.FREQUENCY = 2405.6,
 const int buzzer_pin = 3;
 const int buzz_length = 200;
 bool master_basestation = true;
+bool transmiting_mode = false;
 
 void read_main_lora()
 {
-    if (!com_lora.get_init_status())
-    {
-        return;
-    }
-    String msg;
+    String msg = "";
     float rssi = 0, snr = 0;
-    if (!com_lora.recieve(msg, rssi, snr))
+
+    // Get data from LoRa
+    com_lora->receive(msg, rssi, snr);
+
+    if (msg == "")
     {
         return;
     }
-
     if (msg.charAt(0) == '!')
     {
         Serial.print(msg);
@@ -70,30 +74,15 @@ void read_main_lora()
 
 void send_main_lora(String msg)
 {
-    if (!com_lora.get_init_status())
-    {
-        return;
-    }
-    while (com_lora.send(msg) == false)
-    {
-        delay(50);
-    }
-
-    return;
+    Serial.println("Transmit successful: " + String(com_lora->transmit(msg)));
 }
 
-void init_LoRa_main(RFM_Wrapper::Lora_Device lora_cfg)
+void init_LoRa_main()
 {
-    // delete &lora;
-    String status = com_lora.init(true, com_config);
-    if (com_lora.get_init_status())
-    {
-        Serial.println("RFM lora good");
-    }
-    else
-    {
-        Serial.println(status);
-    }
+    // Init LoRa
+    com_lora = new RadioLib_Wrapper<RFM96>(com_config.CS, com_config.DIO0, com_config.RESET, com_config.DIO1, com_config.SPI_BUS);
+    com_lora->configure_radio(com_config.FREQUENCY, com_config.TXPOWER, com_config.SPREADING, com_config.CODING_RATE, com_config.SIGNAL_BW, com_config.SYNC_WORD);
+    com_lora->test_transmit();
 }
 
 void int_LoRa_ranging(Ranging_Wrapper::Lora_Device lora_cfg)
@@ -130,7 +119,7 @@ void setup()
     SPI.begin();
     if (master_basestation)
     {
-        init_LoRa_main(com_config);
+        init_LoRa_main();
     }
     int_LoRa_ranging(ranging_device);
     Serial.println("base station setup done");
@@ -138,6 +127,14 @@ void setup()
 
 void loop()
 {
+    int i = 0;
+    while(1)
+    {
+        send_main_lora("Hello" + String(i));
+        i++;
+        delay(1000);
+    }
+    /*
     if (transmiting_mode)
     {
         if (Serial.available() > 0)
@@ -216,4 +213,5 @@ void loop()
             tone(buzzer_pin, 1000, 250);
         }
     }
+    */
 }

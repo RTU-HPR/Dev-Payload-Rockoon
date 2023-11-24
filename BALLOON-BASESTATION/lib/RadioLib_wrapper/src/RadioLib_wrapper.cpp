@@ -14,7 +14,6 @@ ICACHE_RAM_ATTR
 void RadioLib_interrupts::set_receive_flag(void)
 {
     received_flag = true;
-    Serial.println("Hello " + String(received_flag));
 }
 
 #if defined(ESP8266) || defined(ESP32)
@@ -23,7 +22,7 @@ ICACHE_RAM_ATTR
 void RadioLib_interrupts::set_transmit_flag(void)
 {
     transmitted_flag = true;
-    Serial.println("HEYYYY " + String(received_flag));
+    Serial.println("Transmit flag set");
 }
 
 template <typename T>
@@ -36,10 +35,10 @@ String RadioLib_Wrapper<T>::type_name()
 }
 
 template <typename T>
-RadioLib_Wrapper<T>::RadioLib_Wrapper(int CS, int DIO0, int RESET, int DIO1)
+RadioLib_Wrapper<T>::RadioLib_Wrapper(int CS, int DIO0, int RESET, int DIO1, HardwareSPI *SPI_BUS)
 {
     // Create new LoRa object
-    radio = new Module(CS, DIO0, RESET, DIO1);
+    radio = new Module(CS, DIO0, RESET, DIO1, *SPI_BUS);
 
     // Save the name of the radio type
     radio_typename = type_name();
@@ -53,12 +52,13 @@ RadioLib_Wrapper<T>::RadioLib_Wrapper(int CS, int DIO0, int RESET, int DIO1)
         Serial.println(radio_typename + " initialization failed with status code: " + String(state.action_status_code));
         return;
     }
+
     // Set interrupt behaviour
-    radio.setPacketSentAction(RadioLib_interrupts::set_transmit_flag);
     radio.setPacketReceivedAction(RadioLib_interrupts::set_receive_flag);
+    radio.setPacketSentAction(RadioLib_interrupts::set_transmit_flag);
 
     // Start receiving with radio module
-    // state.action_status_code = radio.startReceive();
+    state.action_status_code = radio.startReceive();
     if (state.action_status_code != RADIOLIB_ERR_NONE)
     {
         Serial.println(radio_typename + " Receive start failed with status code: " + String(state.action_status_code));
@@ -120,7 +120,6 @@ bool RadioLib_Wrapper<T>::status()
 template <typename T>
 bool RadioLib_Wrapper<T>::transmit(String msg)
 {
-    /*
     if (!transmitted_flag || !state.initialized)
     {
         return false;
@@ -129,8 +128,9 @@ bool RadioLib_Wrapper<T>::transmit(String msg)
     {
         // Reset the flag
         transmitted_flag = false;
+        radio.standby();
     }
-    */
+
     // Start transmitting
     state.action_status_code = radio.startTransmit(msg);
 
@@ -150,8 +150,7 @@ bool RadioLib_Wrapper<T>::transmit(String msg)
 // Listen to messages over LoRa. Returns true if received successfully
 template <typename T>
 bool RadioLib_Wrapper<T>::receive(String &msg, float &rssi, float &snr)
-{   
-    /*
+{
     if (!received_flag || !state.initialized)
     {
         return false;
@@ -161,7 +160,7 @@ bool RadioLib_Wrapper<T>::receive(String &msg, float &rssi, float &snr)
         // Reset the flag
         received_flag = false;
     }
-    */
+
     // Try to read received data
     String str = "";
     state.action_status_code = radio.readData(str);
@@ -176,13 +175,14 @@ bool RadioLib_Wrapper<T>::receive(String &msg, float &rssi, float &snr)
     snr = radio.getSNR();
 
     // Restart receiving
+    radio.finishTransmit();
     radio.startReceive();
-    /*
+
     if (msg == "")
     {
         return false;
     }
-    */
+
     return true;
 }
 

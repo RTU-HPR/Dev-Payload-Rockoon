@@ -45,12 +45,13 @@ bool prepare_state_loop(Cansat &cansat)
     watchdog_update();
     // Read sensor data
     cansat.sensors.read_data(cansat.log, cansat.config);
+    //cansat.log.transmit_data(cansat.config);
 
     // Reset watchdog timer
     watchdog_update();
 
     // Save data to telemetry file
-    cansat.log.log_telemetry_data();
+    // cansat.log.log_telemetry_data();
 
     // Reset watchdog timer
     watchdog_update();
@@ -61,7 +62,7 @@ bool prepare_state_loop(Cansat &cansat)
     // Save last state variables
     if (millis() - last_state_save_time_prepare >= cansat.config.PREPARE_STATE_SAVE_UPDATE_INTERVAL)
     {
-        cansat.save_last_state(cansat);
+        // cansat.save_last_state(cansat);
     }
     
     // Check received message
@@ -91,9 +92,9 @@ bool prepare_state_loop(Cansat &cansat)
             watchdog_update();
     
             // Print data to serial
-            cansat.log.log_telemetry_data_to_pc();
+            //cansat.log.log_telemetry_data_to_pc();
             // Save data to telemetry file
-            cansat.log.log_telemetry_data();
+            //cansat.log.log_telemetry_data();
             // Send data by LoRa
             cansat.log.transmit_data(cansat.config);
             

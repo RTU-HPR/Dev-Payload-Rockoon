@@ -77,7 +77,7 @@ void Sensor_manager::read_ranging(Log &log, Config &config)
         if (result.distance != 0 && result.time != 0)
         {
             data.ranging_results[_last_slave_index] = result;
-            Serial.println(_last_slave_index);
+            //Serial.println(_last_slave_index);
         }
 
         // move to next slave
