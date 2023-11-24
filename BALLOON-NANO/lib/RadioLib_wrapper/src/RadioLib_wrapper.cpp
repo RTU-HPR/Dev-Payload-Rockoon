@@ -11,7 +11,7 @@ and such should be stored in the RAM and not the flash memory
 #if defined(ESP8266) || defined(ESP32)
 ICACHE_RAM_ATTR
 #endif
-void set_receive_flag(void)
+void RadioLib_interrupts::set_receive_flag(void)
 {
     received_flag = true;
 }
@@ -19,7 +19,7 @@ void set_receive_flag(void)
 #if defined(ESP8266) || defined(ESP32)
 ICACHE_RAM_ATTR
 #endif
-void set_transmit_flag(void)
+void RadioLib_interrupts::set_transmit_flag(void)
 {
     transmitted_flag = true;
 }
