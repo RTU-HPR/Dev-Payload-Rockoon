@@ -5,7 +5,7 @@
 #include <MS5611.h>
 #include <Adafruit_SHTC3.h>
 #include <Adafruit_Sensor.h>
-#include <Adafruit_BMP085.h>
+#include <Adafruit_BMP280.h>
 #include <LSM6.h>
 #include <SoftwareSerial.h>
 #include <NTC_Thermistor.h>
@@ -36,7 +36,7 @@ private:
     int _outer_baro_consecutive_failed_readings = 0;
 
     // BARO WIRE0
-    Adafruit_BMP085 _inner_baro;
+    Adafruit_BMP280 _inner_baro;
     int _inner_baro_consecutive_failed_readings = 0;
 
     // IMU WIRE0
@@ -62,8 +62,8 @@ private:
     bool _heater_enabled = false;
     bool _heater_constant = false;
     float _heater_constant_temp;
-    
-    // Averagers 
+
+    // Averagers
     Time_Averaging_Filter<float> *_inner_temp_averager;
     Time_Averaging_Filter<float> *_inner_temp_averager_baro;
     Time_Averaging_Filter<float> *_outer_temp_averager;
@@ -72,7 +72,7 @@ private:
 
     // Battery
     int _batt_voltage_consecutive_failed_readings = 0;
-    
+
     // Heater current
     int _heater_current_consecutive_failed_readings = 0;
 
@@ -95,7 +95,7 @@ public:
 
     // Port extender
     PCF8575 *_port_extender;
-    
+
     bool _hard_reset_required = false;
 
     bool _gps_initialized = false;
@@ -124,13 +124,13 @@ public:
         float inner_temp_probe = 0; // C
         float outer_temp_thermistor = 0;
 
-        float average_inner_temp = 0;  // C
+        float average_inner_temp = 0; // C
         float average_inner_temp_baro = 0;
         float average_outer_temp = 0; // C
-        float heater_power = 0;        // 0-255
-        float p = 0;                   // proportional * coefficient
-        float i = 0;                   // integral * coefficient
-        float d = 0;                   // derivative * coefficient
+        float heater_power = 0;       // 0-255
+        float p = 0;                  // proportional * coefficient
+        float i = 0;                  // integral * coefficient
+        float d = 0;                  // derivative * coefficient
         float target_temp = 0;
 
         float acc[3] = {0, 0, 0};  // m/s^2
@@ -159,10 +159,10 @@ public:
         data.heater_power = 0;
         _temp_manager->reset();
     };
-    
+
     String header = "Data header:";
     Sensor_data data;
-    
+
     String init(Log &log, Config &config);
     void reset_sensor_power(Config &config);
     bool read_switch_state(Config &config);

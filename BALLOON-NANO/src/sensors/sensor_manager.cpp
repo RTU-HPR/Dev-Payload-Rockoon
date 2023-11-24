@@ -28,7 +28,7 @@ void Sensor_manager::read_heater_current(Log &log, Config &config)
     float voltage = (adc_reading / 4095.0) * config.HEATER_CURR_CONVERSION_FACTOR;
 
     // Using Ohm's law calculate current (I=U/R)
-    float new_current = voltage/config.HEATER_RESISTOR_VALUE;
+    float new_current = voltage / config.HEATER_RESISTOR_VALUE;
 
     // Just make sure the voltage value is within reasonable values
     if (config.HEATER_CURRENT_MIN < new_current && new_current < config.HEATER_CURRENT_MAX)
@@ -45,7 +45,7 @@ void Sensor_manager::read_heater_current(Log &log, Config &config)
 }
 
 void Sensor_manager::position_calculation(Log &log, Config &config)
-{   
+{
     // DON'T KNOW WHAT ARE THE EXPECTED VALUES SO ERROR CHECKING WILL BE IMPLEMENTED LATER
     if (_ranging_lora_initalized)
     {
@@ -439,7 +439,7 @@ void Sensor_manager::read_inner_temp_probe(Log &log, Config &config)
             log.send_error("Inner temp probe timeout detected!", config);
             _inner_temp_probe_initialized = false;
         }
-        
+
         // Restart Pico if sensor has failed and if it hasn't already been restarted
         if (!_inner_temp_probe_initialized && !config.last_state_variables.inner_temp_probe_restarted)
         {
@@ -512,7 +512,7 @@ void Sensor_manager::update_heater(Log &log, Config &config)
     if (_heater_enabled)
     {
         float best_inner_temp;
-        
+
         // If heater is not set to constant power mode (both temp sensors have failed)
         if (!_heater_constant)
         {
@@ -608,17 +608,17 @@ String Sensor_manager::init(Log &log, Config &config)
     }
 
     // Port extender
-    _port_extender = new PCF8575(config.PORT_EXTENDER_ADDRESS_I2C);
+    _port_extender = new PCF8575(config.PORT_EXTENDER_WIRE, config.PORT_EXTENDER_ADDRESS_I2C);
     _port_extender->pinMode(config.PORT_EXTENDER_LAUNCH_RAIL_SWITCH_PIN, INPUT);
-	_port_extender->pinMode(config.PORT_EXTENDER_BUZZER_PIN, OUTPUT_12MA);
-	_port_extender->pinMode(config.PORT_EXTENDER_LED_2_PIN, OUTPUT_12MA);
-	_port_extender->pinMode(config.PORT_EXTENDER_LED_1_PIN, OUTPUT_12MA);
+    _port_extender->pinMode(config.PORT_EXTENDER_BUZZER_PIN, OUTPUT_12MA);
+    _port_extender->pinMode(config.PORT_EXTENDER_LED_2_PIN, OUTPUT_12MA);
+    _port_extender->pinMode(config.PORT_EXTENDER_LED_1_PIN, OUTPUT_12MA);
 
     // Outer baro
     if (!config.last_state_variables.outer_baro_failed)
     {
         _outer_baro = MS5611(config.MS5611_ADDRESS_I2C);
-        if (!_outer_baro.begin())
+        if (!_outer_baro.begin(config.MS5611_WIRE))
         {
             log.log_error_msg_to_flash("MS5611 init error");
             status += "MS5611 error ";
@@ -637,11 +637,11 @@ String Sensor_manager::init(Log &log, Config &config)
     // Inner baro
     if (!config.last_state_variables.inner_baro_failed)
     {
-        _inner_baro = Adafruit_BMP085();
-        if (!_inner_baro.begin(config.BMP180_ADDRESS_I2C, &Wire))
+        _inner_baro = Adafruit_BMP280(config.BMP280_WIRE);
+        if (!_inner_baro.begin(config.BMP280_ADDRESS_I2C))
         {
-            log.log_error_msg_to_flash("BMP180 init error");
-            status += "BMP180 error ";
+            log.log_error_msg_to_flash("BMP280 init error");
+            status += "BMP280 error ";
         }
         else
         {
@@ -650,9 +650,9 @@ String Sensor_manager::init(Log &log, Config &config)
     }
     else
     {
-        log.send_error("BMP180 state is set as failed. Sensor not initalized", config);
+        log.send_error("BMP280 state is set as failed. Sensor not initalized", config);
     }
-    
+
     // IMU WIRE1
     if (!config.last_state_variables.imu_failed)
     {
@@ -671,11 +671,11 @@ String Sensor_manager::init(Log &log, Config &config)
     {
         log.send_error("IMU state is set as failed. Sensor not initalized", config);
     }
-    
+
     // TEMP PROBE
     if (!config.last_state_variables.inner_temp_probe_failed)
     {
-       _inner_temp_probe = ClosedCube::Sensor::STS35(&Wire);
+        _inner_temp_probe = ClosedCube::Sensor::STS35(config.IMU_WIRE);
         _inner_temp_probe.address(config.STS35_ADDRESS);
         _inner_temp_probe_initialized = true;
 
@@ -686,7 +686,7 @@ String Sensor_manager::init(Log &log, Config &config)
             _inner_temp_probe_initialized = false;
             log.log_error_msg_to_flash("Inner temp probe init error");
             status += "Inner temp probe error";
-        } 
+        }
     }
     else
     {

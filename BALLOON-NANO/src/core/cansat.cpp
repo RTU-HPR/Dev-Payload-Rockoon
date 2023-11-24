@@ -14,11 +14,11 @@ void Cansat::init_all_com_bus(Config &config)
     SPI1.setSCK(config.SPI1_SCK);
     SPI1.begin();
 
-    Wire.setSCL(config.WIRE0_SCL);
-    Wire.setSDA(config.WIRE0_SDA);
+    // Wire.setSCL(config.WIRE0_SCL);
+    // Wire.setSDA(config.WIRE0_SDA);
 
-    // Wire1.setSCL(config.WIRE1_SCL);
-    // Wire1.setSDA(config.WIRE1_SDA);
+    Wire1.setSCL(config.WIRE1_SCL);
+    Wire1.setSDA(config.WIRE1_SDA);
 
     // Initialize PC serial
     /*
@@ -66,7 +66,7 @@ void Cansat::read_last_state(Cansat &cansat)
 
         // Set the last state variables to the ones read from the file
         int result = sscanf(char_array,                                     // The char array to read from
-                            "%i,%i,%f,%f,%f,%i,%i,%i,%i,%i,%i,%i/n",     // The form the variables are separated in string
+                            "%i,%i,%f,%f,%f,%i,%i,%i,%i,%i,%i,%i/n",        // The form the variables are separated in string
                             &cansat.config.last_state_variables.last_state, // The values to update that correspond to the variable in string
                             &cansat.config.last_state_variables.last_log_file_index,
                             &cansat.config.last_state_variables.last_inner_temp,
@@ -134,7 +134,7 @@ String Cansat::receive_command(Cansat &cansat)
     }
     // Return the message
     return incoming_msg;
-}   
+}
 
 // Write last state from SD card
 void Cansat::save_last_state(Cansat &cansat)
@@ -195,7 +195,7 @@ void Cansat::restart(Cansat &cansat)
 void Cansat::check_if_should_restart(Cansat &cansat)
 {
     if (cansat.sensors._hard_reset_required)
-    {   
+    {
         // Save which sensor has failed
         if (!cansat.sensors._imu_initialized)
         {
@@ -206,9 +206,9 @@ void Cansat::check_if_should_restart(Cansat &cansat)
             cansat.config.last_state_variables.inner_temp_probe_failed = 1;
         }
         cansat.save_last_state(cansat);
-        
+
         cansat.log.send_info("Hard reset initalized", cansat.config);
-        
+
         // Do a restart
         cansat.restart(cansat);
     }
