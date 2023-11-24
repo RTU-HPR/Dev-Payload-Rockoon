@@ -128,7 +128,7 @@ void setup()
 void loop()
 {
     int i = 0;
-    while(1)
+    while (1)
     {
         send_main_lora("Hello" + String(i));
         i++;

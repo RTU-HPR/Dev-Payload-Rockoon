@@ -110,7 +110,6 @@ bool Ranging_Wrapper::master_read(Ranging_Slave slave, Ranging_Result &result, l
         if (_lora_range_state == RADIOLIB_ERR_NONE)
         {
             result.distance = _lora.getRangingResult();
-            result.distance = _lora.get
             result.time = millis();
             result.rssi = _lora.getRSSI();
             result.snr = _lora.getSNR();
