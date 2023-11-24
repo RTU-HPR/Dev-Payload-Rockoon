@@ -1,6 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include <SPI.h>
+#include <Wire.h>
 #include <LittleFS.h>
 #include <SDFS.h>
 #include <ranging_wrapper.h>
@@ -15,7 +16,7 @@ public:
     {
         int last_state = 0;
         int last_log_file_index = 0;
-        
+
         float last_inner_temp = 0;
         float last_integral_term = 0;
         float last_safe_temp = 0;
@@ -25,7 +26,7 @@ public:
         int imu_failed = 0;
         int inner_temp_probe_failed = 0;
         int outer_thermistor_failed = 0;
-        
+
         int outer_baro_restarted = 0;
         int inner_baro_restarted = 0;
         int imu_restarted = 0;
@@ -40,15 +41,15 @@ public:
 
     bool WAIT_PC = true;
     const bool LOG_TO_STORAGE = true;
-    
+
     // 433 MHz LoRa
     struct COM_CONFIG
     {
         float FREQUENCY = 434.5;
-        int CS = 5;
-        int DIO0 = 7;
-        int DIO1 = 8;
-        int RESET = 6;
+        int CS = 2;
+        int DIO0 = 3;
+        int DIO1 = 5;
+        int RESET = 4;
         int SYNC_WORD = 0xF4;
         int TXPOWER = 14;
         int SPREADING = 10;
@@ -62,26 +63,26 @@ public:
     Ranging_Wrapper::Ranging_Slave RANGING_SLAVES[3] = {{.position = {0, 0, 0}, .address = 0x12345678},
                                                         {.position = {0, 0, 0}, .address = 0xABCD9876},
                                                         {.position = {0, 0, 0}, .address = 0x9A8B7C6D}};
-    
+
     Ranging_Wrapper::Mode LORA2400_MODE = Ranging_Wrapper::Mode::MASTER;
     Ranging_Wrapper::Lora_Device ranging_device = {.FREQUENCY = 2405.6,
-                                                .CS = 13,
-                                                .DIO0 = 18, // busy
-                                                .DIO1 = 15,
-                                                .RESET = 14,
-                                                .SYNC_WORD = 0xF5,
-                                                .TXPOWER = 14,
-                                                .SPREADING = 10,
-                                                .CODING_RATE = 7,
-                                                .SIGNAL_BW = 406.25,
-                                                .SPI = &SPI1};
-    
-    const float HEATER_CUT_OFF_VOLTAGE = 6.0; // V
+                                                   .CS = 10,
+                                                   .DIO0 = 13, // busy
+                                                   .DIO1 = 12,
+                                                   .RESET = 11,
+                                                   .SYNC_WORD = 0xF5,
+                                                   .TXPOWER = 14,
+                                                   .SPREADING = 10,
+                                                   .CODING_RATE = 7,
+                                                   .SIGNAL_BW = 406.25,
+                                                   .SPI = &SPI1};
+
+    const float HEATER_CUT_OFF_VOLTAGE = 5.9; // V
     const float DESIRED_HEATER_TEMP = 35.0;   // in C
 
     const unsigned int OUTER_TEMP_AVERAGE_TIME = 3000;
     const unsigned int OUTER_TEMP_AVERAGE_CAPACITY = ((OUTER_TEMP_AVERAGE_TIME / MAX_LOOP_TIME) * 1.5);
-    
+
     const unsigned int INNER_TEMP_AVERAGE_TIME = 3000;
     const unsigned int INNER_TEMP_AVERAGE_CAPACITY = ((INNER_TEMP_AVERAGE_TIME / MAX_LOOP_TIME) * 1.5);
 
@@ -90,8 +91,8 @@ public:
 
     const int LORA_DATAPACKET_COOLDOWN_ASCENT = 30000; // in ms  30000
     const int LORA_DATAPACKET_COOLDOWN_DESCENT = 3000;
-    const int TIME_FROM_LAUNCH_TO_EJECT = 20000;     // ms
-    const int MOSFET_ON_TIME = 10000;                // ms
+    const int TIME_FROM_LAUNCH_TO_EJECT = 20000; // ms
+    const int MOSFET_ON_TIME = 10000;            // ms
 
     //----------------------------------SOMEWHAT STATIC -------------------------------------
 
@@ -109,30 +110,35 @@ public:
     const int SENSOR_POWER_ENABLE_PIN = 17;
 
     // Port extender
+    TwoWire *PORT_EXTENDER_WIRE = &Wire1;
     const int PORT_EXTENDER_ADDRESS_I2C = 0x20;
-    const int PORT_EXTENDER_LAUNCH_RAIL_SWITCH_PIN = 0;  // Switch
-    const int PORT_EXTENDER_BUZZER_PIN = 1;  // Buzzer
-    const int PORT_EXTENDER_LED_2_PIN = 2;  // Status LED 2
-    const int PORT_EXTENDER_LED_1_PIN = 3;  // Status LED
+    const int PORT_EXTENDER_LAUNCH_RAIL_SWITCH_PIN = 0; // Switch
+    const int PORT_EXTENDER_BUZZER_PIN = 1;             // Buzzer
+    const int PORT_EXTENDER_LED_2_PIN = 2;              // Status LED 2
+    const int PORT_EXTENDER_LED_1_PIN = 3;              // Status LED
 
     // logging
     const unsigned long PC_BAUDRATE = 115200;
     FS *FILE_SYSTEM = &SDFS; // if change to LittleFS need to change some code
 
     // GPS UART0
-    const int SERIAL1_RX = 17;
-    const int SERIAL1_TX = 16;
+    const int SERIAL1_RX = 1;
+    const int SERIAL1_TX = 0;
     const long SERIAL1_BAUDRATE = 9600;
-    
-    // Wire0
-    const int WIRE0_SCL = 1;
-    const int WIRE0_SDA = 0;
-    
+
+    // Wire0 enable if using gps
+    // const int WIRE0_SCL = 1;
+    // const int WIRE0_SDA = 0;
+
+    // Wire1
+    const int WIRE1_SCL = 15;
+    const int WIRE1_SDA = 14;
+
     // SPI0
     const int SPI0_RX = 4;
     const int SPI0_TX = 3;
     const int SPI0_SCK = 2;
-    
+
     // SPI1
     const int SPI1_RX = 12;
     const int SPI1_TX = 11;
@@ -143,34 +149,38 @@ public:
 
     SPIClassRP2040 *SD_CARD_SPI = &SPI;
 
-    const int MS5611_ADDRESS_I2C = 0x76; 
-    const int BMP180_ADDRESS_I2C = 0x77; // or 0x76 :D
+    TwoWire *IMU_WIRE = &Wire1;
+    TwoWire *MS5611_WIRE = &Wire1;
+    TwoWire *BMP280_WIRE = &Wire1;
+    const int MS5611_ADDRESS_I2C = 0x76;
+    const int BMP280_ADDRESS_I2C = 0x77; // or 0x76 :D
 
     // INNER TEMP WIRE0
+    TwoWire *STS35_WIRE = &Wire1;
     const int STS35_ADDRESS = 0x4B; // I2C Address: either 0x4A or 0x04B
 
     // OUTER TEMP ANALOG
-    const int THERMISTOR_PIN = 26;
+    const int THERMISTOR_PIN = 28;
     const float THERMISTOR_REFERENCE_R = 10000;
     const float THERMISTOR_NOMINAL_R = 10000;
     const float THERMISTOR_NOMINAL_T = 25;
     const float THERMISTOR_B = -4050;
 
     // Battery voltage
-    const float BATT_SENS_CONVERSION_FACTOR = 3.3 * (1 / 0.3357);
-    const int BATT_SENS_PIN = 28;
+    const float BATT_SENS_CONVERSION_FACTOR = 3.3 * 3.1251;
+    const int BATT_SENS_PIN = 26;
 
     // HEATER
-    const int HEATER_MOSFET = 22; // mosfet 1
+    const int HEATER_MOSFET = 16; // mosfet 1
 
     // Heater current
     const float HEATER_CURR_SENS_PIN = 27;
-    const float HEATER_CURR_CONVERSION_FACTOR = 3.3 * (1 / 0.3357);
+    const float HEATER_CURR_CONVERSION_FACTOR = 3.3 * 3.1251;
     const float HEATER_RESISTOR_VALUE = 1;
 
     // Parachute
     const int PARACHUTE_MOSFET_1 = 19;
-    const int PARACHUTE_MOSFET_2 = 18;   // mosfet 2
+    const int PARACHUTE_MOSFET_2 = 18; // mosfet 2
 
     // Buzzer
     const int BUZZER_INTERVAL = 300;
@@ -205,11 +215,11 @@ public:
     const float INNER_TEMP_PROBE_MIN_TEMP = -40;
     const float INNER_TEMP_PROBE_MAX_TEMP = 60; // Safe assumption of max temp inside. If it goes higher something has gone horribly wrong
 
-    // IMU 
+    // IMU
     // NOT SURE IF ON IMPACT THE ACC COULD BE HIGHER???
     const float IMU_MIN_ACCELERATION = -100;
-    const float IMU_MAX_ACCELERATION = 100; 
-    // Probably won't be rotating faster that this, right??? 
+    const float IMU_MAX_ACCELERATION = 100;
+    // Probably won't be rotating faster that this, right???
     const float IMU_MIN_ROTATION = -36000; // 100 Hz rotations (360 deg*100)
     const float IMU_MAX_ROTATION = 36000;
 
@@ -224,7 +234,7 @@ public:
     // Outer thermistor
     const float OUTER_THERMISTOR_MIN_TEMP = -100;
     const float OUTER_THERMISTOR_MAX_TEMP = 100;
-    
+
     // detection parameters
     // ARMING AND DATA SENDING MSG IN PREP SATE
     const String ARM_MSG = "arm_confirm";
