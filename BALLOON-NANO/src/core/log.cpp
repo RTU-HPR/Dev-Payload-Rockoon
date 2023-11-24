@@ -174,7 +174,7 @@ void Log::init(Config &config)
     init_flash(config);
 
     // Init LoRa
-    _com_lora = new RadioLib_Wrapper<RFM96>(config.com_config.CS, config.com_config.DIO0, config.com_config.RESET, config.com_config.DIO1);
+    _com_lora = new RadioLib_Wrapper<RFM96>(config.com_config.CS, config.com_config.DIO0, config.com_config.RESET, config.com_config.DIO1, config.com_config.SPI);
     _com_lora->configure_radio(config.com_config.FREQUENCY, config.com_config.TXPOWER, config.com_config.SPREADING, config.com_config.CODING_RATE, config.com_config.SIGNAL_BW, config.com_config.SYNC_WORD);
     _com_lora->test_transmit();
 }

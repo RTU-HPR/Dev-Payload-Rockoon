@@ -49,12 +49,13 @@ public:
         int CS = 2;
         int DIO0 = 3;
         int DIO1 = 5;
-        int RESET = 4;
+        int RESET = 8; // schematic was changed from 4 -> 8
         int SYNC_WORD = 0xF4;
         int TXPOWER = 14;
         int SPREADING = 10;
         int CODING_RATE = 7;
         float SIGNAL_BW = 125;
+        SPIClassRP2040 *SPI = &SPI1;
     };
 
     COM_CONFIG com_config;
@@ -135,14 +136,14 @@ public:
     const int WIRE1_SDA = 14;
 
     // SPI0
-    const int SPI0_RX = 4;
-    const int SPI0_TX = 3;
-    const int SPI0_SCK = 2;
+    const int SPI0_RX = 4; // schematic was changed from 8 -> 4
+    const int SPI0_TX = 7;
+    const int SPI0_SCK = 6;
 
     // SPI1
-    const int SPI1_RX = 12;
-    const int SPI1_TX = 11;
-    const int SPI1_SCK = 10;
+    // const int SPI1_RX = 12;
+    // const int SPI1_TX = 11;
+    // const int SPI1_SCK = 10;
 
     const int RANGING_TIMEOUT = 500; // ms  might need to adjust this if lora parameters change
     const int SD_CARD_CS = 20;
