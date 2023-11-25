@@ -1,0 +1,15 @@
+# Payload V2 testable components
+- PCF8575 (port extender) - digital write works on both pcb's. Reading doesn't work. But adjustments were made to not need reading functionality at all
+    - LED1, LED2, BUZZER works on both pcb's. For the buzzer control to work we removed the pull down.
+- MS5611 (outer barometer) - works on both pcb's
+- E22-400M22S (sx1268 based)(com lora) - Currently doesn't work on both pcb's
+- LSM6DSLTR (IMU) - Not tested
+- LAMBDA80C-24S (sx1280 based)(ranging lora) - Not tested
+- MicroSD - Not tested
+- NEO-M9N (GPS) - Not tested
+- Recovery + heater mosfets - Not tested
+- Voltage dividers (battery voltage, heater current) - Not tested
+- BMP180 (inner barometer) - Not assembled, Not tested
+- STS35 (inner temp sensor) - Not assembled, Not tested
+- Micro switch (launch detection switch) - Not tested
+- NTC Thermistor (outer temperature) - Not tested
