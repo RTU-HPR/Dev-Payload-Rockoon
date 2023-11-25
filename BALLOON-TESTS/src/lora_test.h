@@ -3,51 +3,71 @@
 #include <SPI.h>
 
 // PINS payload FC v1  (if not used just comment it out don't delete) ------------------------------------------
-struct COM_CONFIG
-{
-    float FREQUENCY = 434.5;
-    int CS = 5;
-    int DIO0 = 7;
-    int DIO1 = 8;
-    int RESET = 6; // schematic was changed from 4 -> 8
-    int SYNC_WORD = 0xF4;
-    int TXPOWER = 14;
-    int SPREADING = 10;
-    int CODING_RATE = 7;
-    float SIGNAL_BW = 125;
-    SPIClassRP2040 *SPI_BUS = &SPI;
-};
-COM_CONFIG com_config;
-int _MOSI = 3;
-int _MISO = 4;
-int _SCK = 2;
-bool transmit = true; // sets the module in transmitting or receiving state
-#define radio_module RFM96
-
-// PINS payload BASE STATION v1  (if not used just comment it out don't delete) ------------------------------------------
-
 // struct COM_CONFIG
 // {
 //     float FREQUENCY = 434.5;
-//     int CS = 7;
-//     int DIO0 = 5;
-//     int DIO1 = 4;
+//     int CS = 5;
+//     int DIO0 = 7;
+//     int DIO1 = 8;
 //     int RESET = 6; // schematic was changed from 4 -> 8
 //     int SYNC_WORD = 0xF4;
 //     int TXPOWER = 14;
 //     int SPREADING = 10;
 //     int CODING_RATE = 7;
 //     float SIGNAL_BW = 125;
-//     SPIClassRP2040 *SPI_BUS = &SPI1;
+//     SPIClassRP2040 *SPI_BUS = &SPI;
 // };
 // COM_CONFIG com_config;
-// int _MOSI = 11;
-// int _MISO = 12;
-// int _SCK = 10;
-// bool transmit = false; // sets the module in transmitting or receiving state
+// int _MOSI = 3;
+// int _MISO = 4;
+// int _SCK = 2;
+// bool transmit = true; // sets the module in transmitting or receiving state
 // #define radio_module RFM96
 
+// PINS payload BASE STATION v1  (if not used just comment it out don't delete) ------------------------------------------
+
+struct COM_CONFIG
+{
+    float FREQUENCY = 434.5;
+    int CS = 7;
+    int DIO0 = 5;
+    int DIO1 = 4;
+    int RESET = 6; // schematic was changed from 4 -> 8
+    int SYNC_WORD = 0xF4;
+    int TXPOWER = 14;
+    int SPREADING = 10;
+    int CODING_RATE = 7;
+    float SIGNAL_BW = 125;
+    SPIClassRP2040 *SPI_BUS = &SPI1;
+};
+COM_CONFIG com_config;
+int _MOSI = 11;
+int _MISO = 12;
+int _SCK = 10;
+bool transmit = false; // sets the module in transmitting or receiving state
+#define radio_module RFM96
+
 // PINS payload v2  (if not used just comment it out don't delete) ------------------------------------------
+// struct COM_CONFIG
+// {
+//     float FREQUENCY = 434.5;
+//     int CS = 2;
+//     int DIO0 = 3;
+//     int DIO1 = 5;
+//     int RESET = 8; // schematic was changed from 4 -> 8
+//     int SYNC_WORD = 0xF4;
+//     int TXPOWER = 14;
+//     int SPREADING = 10;
+//     int CODING_RATE = 7;
+//     float SIGNAL_BW = 125;
+//     SPIClassRP2040 *SPI_BUS = &SPI;
+// };
+// COM_CONFIG com_config;
+// int _MOSI = 7;
+// int _MISO = 4;
+// int _SCK = 6;
+// bool transmit = true; // sets the module in transmitting or receiving state
+// #define radio_module SX1268
 
 void start()
 {

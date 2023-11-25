@@ -9,10 +9,10 @@ void Cansat::init_all_com_bus(Config &config)
     SPI.setSCK(config.SPI0_SCK);
     SPI.begin();
 
-    SPI1.setRX(config.SPI1_RX);
-    SPI1.setTX(config.SPI1_TX);
-    SPI1.setSCK(config.SPI1_SCK);
-    SPI1.begin();
+    // SPI1.setRX(config.SPI1_RX);
+    // SPI1.setTX(config.SPI1_TX);
+    // SPI1.setSCK(config.SPI1_SCK);
+    // SPI1.begin();
 
     // Wire.setSCL(config.WIRE0_SCL);
     // Wire.setSDA(config.WIRE0_SDA);

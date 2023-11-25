@@ -127,14 +127,7 @@ void setup()
 
 void loop()
 {
-    int i = 0;
-    while (1)
-    {
-        send_main_lora("Hello" + String(i));
-        i++;
-        delay(1000);
-    }
-    /*
+
     if (transmiting_mode)
     {
         if (Serial.available() > 0)
@@ -213,5 +206,4 @@ void loop()
             tone(buzzer_pin, 1000, 250);
         }
     }
-    */
 }

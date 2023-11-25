@@ -23,7 +23,6 @@ void setup()
     }
     delay(3000);
     Serial.println("------------------- starting ------------------");
-
     // Add start here
     start();
 
