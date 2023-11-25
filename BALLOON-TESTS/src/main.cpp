@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <Wire.h>
+#include <Adafruit_I2CDevice.h>
+#include <Adafruit_Sensor.h>
+#include <EEPROM.h>
 
 /*
 1. Simply include the wanted test file using #include   !! dont include more than one
@@ -8,12 +11,18 @@
 3. run the start function
 */
 
-#include <ms5611_test.h>
+#include <lora_test.h>
 
 void setup()
 {
 
     Serial.begin(115200); // initialize serial
+    while (!Serial)
+    {
+        delay(100);
+    }
+    delay(3000);
+    Serial.println("------------------- starting ------------------");
 
     // Add start here
     start();

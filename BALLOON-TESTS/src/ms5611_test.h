@@ -3,18 +3,18 @@
 #include <Wire.h>
 
 // PINS payload v2  (if not used just comment it out don't delete)
-int SDA = 14;
-int SCL = 15;
-TwoWire *WIRE = &Wire1;
+int _SDA = 14;
+int _SCL = 15;
+TwoWire *_WIRE = &Wire1;
 int MS5611_ADDRESS = 0x77; // could be 0x76
 
 MS5611 ms5611(MS5611_ADDRESS);
 void start()
 {
-    WIRE->setSCL(SCL);
-    WIRE->setSDA(SDA);
+    _WIRE->setSCL(_SCL);
+    _WIRE->setSDA(_SDA);
 
-    if (ms5611.begin(WIRE) == true)
+    if (ms5611.begin(_WIRE) == true)
     {
         Serial.println("MS5611 found.");
     }
