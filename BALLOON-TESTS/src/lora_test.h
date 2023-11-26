@@ -26,48 +26,48 @@
 
 // PINS payload BASE STATION v1  (if not used just comment it out don't delete) ------------------------------------------
 
-struct COM_CONFIG
-{
-    float FREQUENCY = 434.5;
-    int CS = 7;
-    int DIO0 = 5;
-    int DIO1 = 4;
-    int RESET = 6; // schematic was changed from 4 -> 8
-    int SYNC_WORD = 0xF4;
-    int TXPOWER = 14;
-    int SPREADING = 10;
-    int CODING_RATE = 7;
-    float SIGNAL_BW = 125;
-    SPIClassRP2040 *SPI_BUS = &SPI1;
-};
-COM_CONFIG com_config;
-int _MOSI = 11;
-int _MISO = 12;
-int _SCK = 10;
-bool transmit = false; // sets the module in transmitting or receiving state
-#define radio_module RFM96
-
-// PINS payload v2  (if not used just comment it out don't delete) ------------------------------------------
 // struct COM_CONFIG
 // {
 //     float FREQUENCY = 434.5;
-//     int CS = 2;
-//     int DIO0 = 3;
-//     int DIO1 = 5;
-//     int RESET = 8; // schematic was changed from 4 -> 8
+//     int CS = 7;
+//     int DIO0 = 5;
+//     int DIO1 = 4;
+//     int RESET = 6; // schematic was changed from 4 -> 8
 //     int SYNC_WORD = 0xF4;
 //     int TXPOWER = 14;
 //     int SPREADING = 10;
 //     int CODING_RATE = 7;
 //     float SIGNAL_BW = 125;
-//     SPIClassRP2040 *SPI_BUS = &SPI;
+//     SPIClassRP2040 *SPI_BUS = &SPI1;
 // };
 // COM_CONFIG com_config;
-// int _MOSI = 7;
-// int _MISO = 4;
-// int _SCK = 6;
-// bool transmit = true; // sets the module in transmitting or receiving state
-// #define radio_module SX1268
+// int _MOSI = 11;
+// int _MISO = 12;
+// int _SCK = 10;
+// bool transmit = false; // sets the module in transmitting or receiving state
+// #define radio_module RFM96
+
+// PINS payload v2  (if not used just comment it out don't delete) ------------------------------------------
+struct COM_CONFIG
+{
+    float FREQUENCY = 434.5;
+    int CS = 2;
+    int DIO0 = 3;
+    int DIO1 = 5;
+    int RESET = 8; // schematic was changed from 4 -> 8
+    int SYNC_WORD = 0xF4;
+    int TXPOWER = 14;
+    int SPREADING = 10;
+    int CODING_RATE = 7;
+    float SIGNAL_BW = 125;
+    SPIClassRP2040 *SPI_BUS = &SPI;
+};
+COM_CONFIG com_config;
+int _MOSI = 7;
+int _MISO = 4;
+int _SCK = 6;
+bool transmit = true; // sets the module in transmitting or receiving state
+#define radio_module SX1268
 
 void start()
 {
@@ -76,6 +76,7 @@ void start()
     com_config.SPI_BUS->setSCK(_SCK);
     com_config.SPI_BUS->begin();
     RadioLib_Wrapper<radio_module> *_com_lora = new RadioLib_Wrapper<radio_module>(com_config.CS, com_config.DIO0, com_config.RESET, com_config.DIO1, com_config.SPI_BUS);
+
     bool configure_status = _com_lora->configure_radio(com_config.FREQUENCY, com_config.TXPOWER, com_config.SPREADING, com_config.CODING_RATE, com_config.SIGNAL_BW, com_config.SYNC_WORD);
     if (!configure_status)
     {
@@ -85,6 +86,11 @@ void start()
     {
         Serial.println("Module init done");
     }
+    // For sx126x base loras. RX TX controled over DIO2
+    _com_lora->configure_tx_rx_switching();
+    // RX TX enable controlled directly
+    //_com_lora->configure_tx_rx_switching(pin1, pin2);
+
     _com_lora->test_transmit();
 
     while (true)
