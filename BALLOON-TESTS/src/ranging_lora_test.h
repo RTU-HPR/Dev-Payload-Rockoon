@@ -38,7 +38,7 @@ void start()
     int _slave_index = 0;
     String status = "";
 
-    String result = _ranging_lora.init(config.LORA2400_MODE, config.ranging_device);
+    String result = _ranging_lora.init(LORA2400_MODE, ranging_device);
     if (result == "")
     {
         _ranging_lora_initalized = true;
@@ -57,7 +57,8 @@ void start()
         {
             Ranging_Wrapper::Ranging_Result result = {0, 0};
             bool move_to_next_slave = false;
-            if (_ranging_lora.master_read(config.RANGING_SLAVES[_slave_index], result, config.RANGING_TIMEOUT))
+            unsigned long timeout = 500;
+            if (_ranging_lora.master_read(RANGING_SLAVES[_slave_index], result, timeout))
             {
                 // ranging data read and ranging for current slave started
                 move_to_next_slave = true;

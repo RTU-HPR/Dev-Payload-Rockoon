@@ -86,7 +86,7 @@ void start()
     {
         Serial.println("Module init done");
     }
-    // For sx126x base loras. RX TX controled over DIO2
+    // For sx126x based radios. RX TX controlled over DIO2
     _com_lora->configure_tx_rx_switching();
     // RX TX enable controlled directly
     //_com_lora->configure_tx_rx_switching(pin1, pin2);

@@ -129,7 +129,7 @@ void start()
         }
         else if (state == RADIOLIB_ERR_TX_TIMEOUT)
         {
-            // timeout occured while transmitting packet
+            // timeout occurred while transmitting packet
             Serial.println(F("timeout!"));
         }
         else
