@@ -19,7 +19,7 @@ Ranging_Wrapper::Lora_Device ranging_device = {.FREQUENCY = 2405.6,
                                                .SPREADING = 10,
                                                .CODING_RATE = 7,
                                                .SIGNAL_BW = 406.25,
-                                               .SPI = &SPI1};
+                                               .SPI = &SPI};
 const int SPI0_RX = 4; // schematic was changed from 8 -> 4
 const int SPI0_TX = 7;
 const int SPI0_SCK = 6;
