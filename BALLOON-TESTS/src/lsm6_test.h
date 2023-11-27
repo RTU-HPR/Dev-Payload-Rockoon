@@ -7,7 +7,7 @@
 int _SDA = 14;
 int _SCL = 15;
 TwoWire *_WIRE = &Wire1;
-int imu_address = 106U;
+int imu_address = 0x6B;
 
 void start()
 {
