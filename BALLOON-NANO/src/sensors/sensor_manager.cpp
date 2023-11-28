@@ -68,7 +68,7 @@ void Sensor_manager::read_ranging(Log &log, Config &config)
     {
         Ranging_Wrapper::Ranging_Result result = {0, 0};
         bool move_to_next_slave = false;
-        if (_ranging_lora.master_read(config.RANGING_SLAVES[_slave_index], result, config.RANGING_TIMEOUT))
+        if (_ranging_lora.master_read(config.RANGING_SLAVES[_slave_index], result, config.RANGING_LORA_TIMEOUT))
         {
             // ranging data read and ranging for current slave started
             move_to_next_slave = true;
@@ -294,11 +294,14 @@ void Sensor_manager::read_imu(Log &log, Config &config)
         bool data_ok = true;
 
         // Read the sensor
-        _imu.read();
+        sensors_event_t accel;
+        sensors_event_t gyro;
+        sensors_event_t temp;
+        _imu.getEvent(&accel, &gyro, &temp);
 
         // End timer, as the actual reading part has ended
         reading_end = millis();
-
+        /*
         // Divide by range
         double acc_conversion_factor = 0.061 / 1000; // mg/LSB this changes if the total range changes  currently 2g after that divide by 1000 to get m/s^2
         double temp_acc_x = _imu.a.x * acc_conversion_factor;
@@ -309,18 +312,18 @@ void Sensor_manager::read_imu(Log &log, Config &config)
         double temp_gyro_x = _imu.g.x * gyro_conversion_factor;
         double temp_gyro_y = _imu.g.y * gyro_conversion_factor;
         double temp_gyro_z = _imu.g.z * gyro_conversion_factor;
-
+        */
         // Get largest and smallest data values
-        double acc_min = min(min(temp_acc_x, temp_acc_y), temp_acc_z);
-        double acc_max = max(max(temp_acc_x, temp_acc_y), temp_acc_z);
-        double gyro_min = min(min(temp_gyro_x, temp_gyro_y), temp_gyro_z);
-        double gyro_max = max(max(temp_gyro_x, temp_gyro_y), temp_gyro_z);
+        double acc_min = min(min(accel.acceleration.x, accel.acceleration.y), accel.acceleration.z);
+        double acc_max = max(max(accel.acceleration.x, accel.acceleration.y), accel.acceleration.z);
+        double gyro_min = min(min(gyro.gyro.x, gyro.gyro.y), gyro.gyro.z);
+        double gyro_max = max(max(gyro.gyro.x, gyro.gyro.y), gyro.gyro.z);
 
         // Check if values within acceptable range
         // Acceleration
         // Check if all values are 0, as that is not possible due to noise
         // That means that sensor reading has failed
-        if (temp_acc_x == 0 && temp_acc_y == 0 && temp_acc_z == 0)
+        if (accel.acceleration.x == 0 && accel.acceleration.y == 0 && accel.acceleration.z == 0)
         {
             // Later change to log_error_to_flash
             log.send_error("IMU acceleration readings are 0", config);
@@ -328,21 +331,21 @@ void Sensor_manager::read_imu(Log &log, Config &config)
         }
         else if (config.IMU_MIN_ACCELERATION <= acc_min && acc_max <= config.IMU_MAX_ACCELERATION)
         {
-            data.acc[0] = temp_acc_x;
-            data.acc[1] = temp_acc_y;
-            data.acc[2] = temp_acc_z;
+            data.acc[0] = accel.acceleration.x;
+            data.acc[1] = accel.acceleration.y;
+            data.acc[2] = accel.acceleration.z;
         }
         else
         {
             // Later change to log_error_to_flash
-            log.send_error("IMU acceleration readings outside range: " + String(temp_acc_x) + " " + String(temp_acc_y) + " " + String(temp_acc_z), config);
+            log.send_error("IMU acceleration readings outside range: " + String(accel.acceleration.x) + " " + String(accel.acceleration.y) + " " + String(accel.acceleration.z), config);
             data_ok = false;
         }
 
         // Gyro
         // Check if all values are 0, as that is not possible due to noise
         // That means that sensor reading has failed
-        if (temp_gyro_x == 0 && temp_gyro_y == 0 && temp_gyro_z == 0)
+        if (gyro.gyro.x == 0 && gyro.gyro.y == 0 && gyro.gyro.z == 0)
         {
             // Later change to log_error_to_flash
             log.send_error("IMU gyro readings are 0", config);
@@ -350,14 +353,14 @@ void Sensor_manager::read_imu(Log &log, Config &config)
         }
         else if (config.IMU_MIN_ROTATION <= gyro_min && gyro_max <= config.IMU_MAX_ROTATION)
         {
-            data.gyro[0] = temp_gyro_x;
-            data.gyro[1] = temp_gyro_y;
-            data.gyro[2] = temp_gyro_z;
+            data.gyro[0] = gyro.gyro.x;
+            data.gyro[1] = gyro.gyro.y;
+            data.gyro[2] = gyro.gyro.z;
         }
         else
         {
             // Later change to log_error_to_flash
-            log.send_error("IMU gyro readings outside range: " + String(temp_gyro_x) + " " + String(temp_gyro_y) + " " + String(temp_gyro_z), config);
+            log.send_error("IMU gyro readings outside range: " + String(gyro.gyro.x) + " " + String(gyro.gyro.y) + " " + String(gyro.gyro.), config);
             data_ok = false;
         }
 
@@ -609,10 +612,9 @@ String Sensor_manager::init(Log &log, Config &config)
 
     // Port extender
     _port_extender = new PCF8575(config.PORT_EXTENDER_WIRE, config.PORT_EXTENDER_ADDRESS_I2C);
-    _port_extender->pinMode(config.PORT_EXTENDER_LAUNCH_RAIL_SWITCH_PIN, INPUT);
-    _port_extender->pinMode(config.PORT_EXTENDER_BUZZER_PIN, OUTPUT_12MA);
-    _port_extender->pinMode(config.PORT_EXTENDER_LED_2_PIN, OUTPUT_12MA);
-    _port_extender->pinMode(config.PORT_EXTENDER_LED_1_PIN, OUTPUT_12MA);
+    _port_extender->pinMode(config.PORT_EXTENDER_BUZZER_PIN, OUTPUT);
+    _port_extender->pinMode(config.PORT_EXTENDER_LED_2_PIN, OUTPUT);
+    _port_extender->pinMode(config.PORT_EXTENDER_LED_1_PIN, OUTPUT);
 
     // Outer baro
     if (!config.last_state_variables.outer_baro_failed)
@@ -656,7 +658,7 @@ String Sensor_manager::init(Log &log, Config &config)
     // IMU WIRE1
     if (!config.last_state_variables.imu_failed)
     {
-        if (!_imu.init())
+        if (!_imu.begin_I2C(config.IMU_ADDRESS_I2C, config.IMU_WIRE))
         {
             log.log_error_msg_to_flash("IMU init error");
             status += "IMU error ";
@@ -664,7 +666,10 @@ String Sensor_manager::init(Log &log, Config &config)
         else
         {
             _imu_initialized = true;
-            _imu.enableDefault();
+            _imu.setAccelRange(LSM6DS_ACCEL_RANGE_2_G);
+            _imu.setGyroRange(LSM6DS_GYRO_RANGE_1000_DPS);
+            _imu.setAccelDataRate(LSM6DS_RATE_104_HZ);
+            _imu.setGyroDataRate(LSM6DS_RATE_104_HZ);
         }
     }
     else
@@ -750,7 +755,7 @@ void Sensor_manager::reset_sensor_power(Config &config)
 
 bool Sensor_manager::read_switch_state(Config &config)
 {
-    bool switch_state = _port_extender->digitalRead(config.PORT_EXTENDER_LAUNCH_RAIL_SWITCH_PIN);
+    bool switch_state = digitalRead(config.LAUNCH_RAIL_SWITCH_PIN);
     return switch_state;
 }
 

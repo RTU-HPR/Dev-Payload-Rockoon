@@ -11,7 +11,7 @@
 3. run the start function
 */
 
-#include <lora_test.h>
+#include <lora_lowlevel_test.h>
 
 void setup()
 {

@@ -57,7 +57,6 @@ public:
         float SIGNAL_BW = 125;
         SPIClassRP2040 *SPI = &SPI1;
     };
-
     COM_CONFIG com_config;
 
     // Ranging 2.4 GHZ LoRa
@@ -105,15 +104,53 @@ public:
     const unsigned int DESCENT_STATE_SAVE_UPDATE_INTERVAL = 5000;
 
     // Watchdog
-    const int WATCHDOG_TIMER = 5000;
+    const int WATCHDOG_TIMER = 5000; // Max is 8400
 
     // Sensor power
     const int SENSOR_POWER_ENABLE_PIN = 17;
 
-    // Port extender
+    const int LAUNCH_RAIL_SWITCH_PIN = 21; // Switch
+
+    // I2C
+    // Wire0 enable if using gps
+    // const int WIRE0_SCL = 1;
+    // const int WIRE0_SDA = 0;
+
+    // Wire1
+    const int WIRE1_SCL = 15;
+    const int WIRE1_SDA = 14;
+
+    // I2C bus usage
+    TwoWire *IMU_WIRE = &Wire1;
+    TwoWire *STS35_WIRE = &Wire1;
+    TwoWire *BMP280_WIRE = &Wire1;
+    TwoWire *MS5611_WIRE = &Wire1;
     TwoWire *PORT_EXTENDER_WIRE = &Wire1;
+
+    // I2C addresses
     const int PORT_EXTENDER_ADDRESS_I2C = 0x20;
-    const int PORT_EXTENDER_LAUNCH_RAIL_SWITCH_PIN = 0; // Switch
+    const int MS5611_ADDRESS_I2C = 0x76;
+    const int BMP280_ADDRESS_I2C = 0x77; // or 0x76 :D
+    const int IMU_ADDRESS_I2C = 0x6B;  // or 0x6A
+    const int STS35_ADDRESS = 0x4B; // I2C Address: either 0x4A or 0x04B
+
+    // SPI
+    // SPI0
+    const int SPI0_RX = 4; // schematic was changed from 8 -> 4
+    const int SPI0_TX = 7;
+    const int SPI0_SCK = 6;
+
+    // SPI1
+    // const int SPI1_RX = 12;
+    // const int SPI1_TX = 11;
+    // const int SPI1_SCK = 10;
+
+    // SPI bus usage
+    // Sd card
+    const int SD_CARD_CS = 20;
+    SPIClassRP2040 *SD_CARD_SPI = &SPI;
+ 
+    // Port extender
     const int PORT_EXTENDER_BUZZER_PIN = 1;             // Buzzer
     const int PORT_EXTENDER_LED_2_PIN = 2;              // Status LED 2
     const int PORT_EXTENDER_LED_1_PIN = 3;              // Status LED
@@ -126,40 +163,7 @@ public:
     const int SERIAL1_RX = 1;
     const int SERIAL1_TX = 0;
     const long SERIAL1_BAUDRATE = 9600;
-
-    // Wire0 enable if using gps
-    // const int WIRE0_SCL = 1;
-    // const int WIRE0_SDA = 0;
-
-    // Wire1
-    const int WIRE1_SCL = 15;
-    const int WIRE1_SDA = 14;
-
-    // SPI0
-    const int SPI0_RX = 4; // schematic was changed from 8 -> 4
-    const int SPI0_TX = 7;
-    const int SPI0_SCK = 6;
-
-    // SPI1
-    // const int SPI1_RX = 12;
-    // const int SPI1_TX = 11;
-    // const int SPI1_SCK = 10;
-
-    const int RANGING_TIMEOUT = 500; // ms  might need to adjust this if lora parameters change
-    const int SD_CARD_CS = 20;
-
-    SPIClassRP2040 *SD_CARD_SPI = &SPI;
-
-    TwoWire *IMU_WIRE = &Wire1;
-    TwoWire *MS5611_WIRE = &Wire1;
-    TwoWire *BMP280_WIRE = &Wire1;
-    const int MS5611_ADDRESS_I2C = 0x76;
-    const int BMP280_ADDRESS_I2C = 0x77; // or 0x76 :D
-
-    // INNER TEMP WIRE0
-    TwoWire *STS35_WIRE = &Wire1;
-    const int STS35_ADDRESS = 0x4B; // I2C Address: either 0x4A or 0x04B
-
+    
     // OUTER TEMP ANALOG
     const int THERMISTOR_PIN = 28;
     const float THERMISTOR_REFERENCE_R = 10000;
@@ -192,7 +196,7 @@ public:
     const unsigned int INNER_TEMP_PROBE_TIMEOUT = 100;
     const unsigned int IMU_TIMEOUT = 200;
     const unsigned int OUTER_THERMISTOR_TIMEOUT = 100;
-    const unsigned int RANGING_LORA_TIMEOUT = 200;
+    const unsigned int RANGING_LORA_TIMEOUT = 500;
 
     // Max allowed unsuccessful readings
     const int OUTER_BARO_MAX_ATTEMPTS = 3;

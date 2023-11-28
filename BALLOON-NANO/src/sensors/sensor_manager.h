@@ -1,13 +1,10 @@
 #pragma once
 #include <TinyGPS++.h>
-#include <SoftwareSerial.h>
 #include <Wire.h>
 #include <MS5611.h>
-#include <Adafruit_SHTC3.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP280.h>
-#include <LSM6.h>
-#include <SoftwareSerial.h>
+#include <Adafruit_LSM6DSL.h>
 #include <NTC_Thermistor.h>
 #include <RadioLib.h>
 #include "temperature_manager.h"
@@ -40,7 +37,7 @@ private:
     int _inner_baro_consecutive_failed_readings = 0;
 
     // IMU WIRE0
-    LSM6 _imu;
+    Adafruit_LSM6DS _imu;
     int _imu_consecutive_failed_readings = 0;
 
     // TEMPERATURE WIRE0

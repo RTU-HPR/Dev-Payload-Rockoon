@@ -7,7 +7,7 @@
 // PINS  Payload V2  (if not used just comment it out don't delete)
 const int SERIAL1_RX = 1;
 const int SERIAL1_TX = 0;
-const long SERIAL1_BAUDRATE = 9600;
+const long SERIAL1_BAUDRATE = 38400; // Default gps module baud rate
 
 void start()
 {
