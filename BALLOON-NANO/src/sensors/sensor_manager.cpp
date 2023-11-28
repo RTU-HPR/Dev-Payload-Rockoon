@@ -360,7 +360,7 @@ void Sensor_manager::read_imu(Log &log, Config &config)
         else
         {
             // Later change to log_error_to_flash
-            log.send_error("IMU gyro readings outside range: " + String(gyro.gyro.x) + " " + String(gyro.gyro.y) + " " + String(gyro.gyro.), config);
+            log.send_error("IMU gyro readings outside range: " + String(gyro.gyro.x) + " " + String(gyro.gyro.y) + " " + String(gyro.gyro.z), config);
             data_ok = false;
         }
 

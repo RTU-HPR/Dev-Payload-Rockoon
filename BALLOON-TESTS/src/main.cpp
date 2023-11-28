@@ -4,6 +4,8 @@
 #include <Adafruit_I2CDevice.h>
 #include <Adafruit_Sensor.h>
 #include <EEPROM.h>
+#include <PCF8575.h>
+
 
 /*
 1. Simply include the wanted test file using #include   !! dont include more than one
@@ -11,17 +13,16 @@
 3. run the start function
 */
 
-#include <lora_lowlevel_test.h>
+#include <gps_test.h>
 
 void setup()
 {
-
     Serial.begin(115200); // initialize serial
     while (!Serial)
     {
         delay(100);
     }
-    delay(3000);
+    delay(1000);
     Serial.println("------------------- starting ------------------");
     // Add start here
     start();

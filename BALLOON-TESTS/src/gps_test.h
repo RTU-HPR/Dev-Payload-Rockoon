@@ -2,12 +2,13 @@
 #include <SPI.h>
 #include <Wire.h>
 #include <TinyGPS++.h>
-#include <SoftwareSerial.h>
+#include <PCF8575.h>
 
 // PINS  Payload V2  (if not used just comment it out don't delete)
 const int SERIAL1_RX = 1;
 const int SERIAL1_TX = 0;
 const long SERIAL1_BAUDRATE = 38400; // Default gps module baud rate
+
 
 void start()
 {
@@ -18,16 +19,23 @@ void start()
 
     TinyGPSPlus _gps;
     SerialUART *_gps_serial = &Serial1;
+    
+    // Command for setting gps to airborne <1g mode
+    const static char PROGMEM airborne[] = {0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06, 0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x4D, 0xDB};
 
+    Serial1.write(airborne, sizeof(airborne));
+    delay(100);
+    
     while (true)
     {
         while (_gps_serial->available() > 0)
         {
             _gps.encode(_gps_serial->read());
+            //Serial.print((char)_gps_serial->read());
 
             if (_gps.location.isUpdated())
             {
-                double new_gps_lat = _gps.location.lat();
+                doubt le new_gps_lat = _gps.location.lat();
                 double new_gps_lng = _gps.location.lng();
 
                 // SANITY CHECK, BECAUSE THERE IS NOTHING ELSE TO REALLY CHECK

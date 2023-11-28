@@ -11,11 +11,11 @@ SPIClassRP2040 *SPI_BUS = &SPI;
 
 void start()
 {
-
     SPI_BUS->setRX(_MISO);
     SPI_BUS->setTX(_MOSI);
     SPI_BUS->setSCK(_SCK);
     SPI_BUS->begin();
+
     // Config
     FS *_flash = &SDFS;
     SDFSConfig sd_config;
