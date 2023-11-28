@@ -11,7 +11,7 @@
 3. run the start function
 */
 
-#include <ranging_lora_test.h>
+#include <lora_test.h>
 
 void setup()
 {

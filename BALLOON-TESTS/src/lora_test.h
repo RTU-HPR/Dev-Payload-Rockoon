@@ -66,7 +66,7 @@ COM_CONFIG com_config;
 int _MOSI = 7;
 int _MISO = 4;
 int _SCK = 6;
-bool transmit = true; // sets the module in transmitting or receiving state
+bool transmit = false; // sets the module in transmitting or receiving state
 #define radio_module SX1268
 
 void start()
@@ -87,11 +87,11 @@ void start()
         Serial.println("Module init done");
     }
     // For sx126x based radios. RX TX controlled over DIO2
-    _com_lora->configure_tx_rx_switching();
+    Serial.println("RxTX : " + String(_com_lora->configure_tx_rx_switching()));
     // RX TX enable controlled directly
     //_com_lora->configure_tx_rx_switching(pin1, pin2);
 
-    _com_lora->test_transmit();
+    // _com_lora->test_transmit();
 
     while (true)
     {
@@ -106,8 +106,8 @@ void start()
             else
             {
                 // Serial.println("Msg not sent");
-                // delay(1000);
             }
+            delay(1000);
         }
         else
         {
