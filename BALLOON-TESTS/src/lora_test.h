@@ -47,37 +47,53 @@
 // bool transmit = false; // sets the module in transmitting or receiving state
 // #define radio_module RFM96
 
-// PINS payload v2  (if not used just comment it out don't delete) ------------------------------------------
-struct COM_CONFIG
-{
-    float FREQUENCY = 434.5;
-    int CS = 2;
-    int DIO0 = 3;
-    int DIO1 = 5;
-    int RESET = 8; // schematic was changed from 4 -> 8
-    int SYNC_WORD = 0xF4;
-    int TXPOWER = 14;
-    int SPREADING = 10;
-    int CODING_RATE = 7;
-    float SIGNAL_BW = 125;
-    SPIClassRP2040 *SPI_BUS = &SPI;
-};
-COM_CONFIG com_config;
+// // PINS payload v2  (if not used just comment it out don't delete) ------------------------------------------
+// struct COM_CONFIG
+// {
+//     float FREQUENCY = 434.5;
+//     int CS = 2;
+//     int DIO0 = 3;
+//     int DIO1 = 5;
+//     int RESET = 8; // schematic was changed from 4 -> 8
+//     int SYNC_WORD = 0xF4;
+//     int TXPOWER = 14;
+//     int SPREADING = 10;
+//     int CODING_RATE = 7;
+//     float SIGNAL_BW = 125;
+//     SPIClassRP2040 *SPI_BUS = &SPI;
+// };
+
 int _MOSI = 7;
 int _MISO = 4;
 int _SCK = 6;
 bool transmit = false; // sets the module in transmitting or receiving state
 #define radio_module SX1268
+RadioLib_Wrapper<radio_module>::RADIO_CONFIG com_config{
+    .FREQUENCY = 434.5,
+    .CS = = 2,
+    .DIO0 = 3,
+    .DIO1 = 5,
+    .rf_switching = RadioLib_Wrapper<radio_module>::RADIO_CONFIG::RF_SWITCHING::DIO2,
+    .RESET = 8,
+    .SYNC_WORD = 0xF4,
+    .TXPOWER = 14,
+    .SPREADING = 10,
+    .CODING_RATE = 7,
+    .SIGNAL_BW = 125,
+    .SPI_BUS = &SPI,
+};
 
 void start()
 {
-    com_config.SPI_BUS->setRX(_MISO);
-    com_config.SPI_BUS->setTX(_MOSI);
-    com_config.SPI_BUS->setSCK(_SCK);
-    com_config.SPI_BUS->begin();
-    RadioLib_Wrapper<radio_module> *_com_lora = new RadioLib_Wrapper<radio_module>(com_config.CS, com_config.DIO0, com_config.RESET, com_config.DIO1, com_config.SPI_BUS);
+    SPIClassRP2040 *SPI_BUS = (SPIClassRP2040 *)com_config.SPI_BUS;
+    SPI_BUS->setRX(_MISO);
+    SPI_BUS->setTX(_MOSI);
+    SPI_BUS->setSCK(_SCK);
+    SPI_BUS->begin();
 
-    bool configure_status = _com_lora->configure_radio(com_config.FREQUENCY, com_config.TXPOWER, com_config.SPREADING, com_config.CODING_RATE, com_config.SIGNAL_BW, com_config.SYNC_WORD);
+    RadioLib_Wrapper<radio_module> *_com_lora = new RadioLib_Wrapper<radio_module>(com_config);
+
+    bool configure_status = _com_lora->configure_radio(com_config);
     if (!configure_status)
     {
         Serial.println("Configuration failed)");
@@ -87,7 +103,6 @@ void start()
         Serial.println("Module init done");
     }
     // For sx126x based radios. RX TX controlled over DIO2
-    Serial.println("RxTX : " + String(_com_lora->configure_tx_rx_switching()));
     // RX TX enable controlled directly
     //_com_lora->configure_tx_rx_switching(pin1, pin2);
 

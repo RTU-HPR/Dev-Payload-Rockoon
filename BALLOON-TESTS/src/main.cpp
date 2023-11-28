@@ -6,14 +6,13 @@
 #include <EEPROM.h>
 #include <PCF8575.h>
 
-
 /*
 1. Simply include the wanted test file using #include   !! dont include more than one
 2. make sure the included file has the right pins
 3. run the start function
 */
 
-#include <gps_test.h>
+#include <lora_test.h>
 
 void setup()
 {
