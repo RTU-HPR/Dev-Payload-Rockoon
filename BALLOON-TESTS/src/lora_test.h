@@ -73,7 +73,10 @@ RadioLib_Wrapper<radio_module>::RADIO_CONFIG com_config{
     .CS = = 2,
     .DIO0 = 3,
     .DIO1 = 5,
+    .FAMILY = RadioLib_Wrapper<radio_module>::RADIO_CONFIG::CHIP_FAMILY::SX126X,
     .rf_switching = RadioLib_Wrapper<radio_module>::RADIO_CONFIG::RF_SWITCHING::DIO2,
+    // .RX_ENABLE = 0, // only needed if rf_switching = gpio
+    // .TX_ENABLE = 0, // only needed if rf_switching = gpio
     .RESET = 8,
     .SYNC_WORD = 0xF4,
     .TXPOWER = 14,
@@ -102,10 +105,6 @@ void start()
     {
         Serial.println("Module init done");
     }
-    // For sx126x based radios. RX TX controlled over DIO2
-    // RX TX enable controlled directly
-    //_com_lora->configure_tx_rx_switching(pin1, pin2);
-
     // _com_lora->test_transmit();
 
     while (true)
@@ -113,7 +112,9 @@ void start()
         if (transmit)
         {
             // transmit
-            bool sent_status = _com_lora->transmit("Hello World");
+            String msg = "Hello World";
+            _com_lora->add_checksum(msg);
+            bool sent_status = _com_lora->transmit(msg);
             if (sent_status)
             {
                 Serial.println("MSG sent");
@@ -131,10 +132,17 @@ void start()
             float rssi = 0;
             float snr = 0;
             bool received_status = _com_lora->receive(msg, rssi, snr);
-
             if (received_status)
             {
-                Serial.println("Message received: " + msg + "  RSSI: " + String(rssi) + "   SNR: " + String(snr));
+                Serial.println("Message received RAW MSG: " + msg + "  RSSI: " + String(rssi) + "   SNR: " + String(snr));
+                if (_com_lora->check_checksum(msg))
+                {
+                    Serial.println("Check sum good: " + msg);
+                }
+                else
+                {
+                    Serial.println("Check sum BAD: " + msg);
+                }
             }
         }
     }
