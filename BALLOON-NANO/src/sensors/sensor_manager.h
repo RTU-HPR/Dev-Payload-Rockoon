@@ -1,5 +1,10 @@
 #pragma once
-#include <TinyGPS++.h>
+#include "temperature_manager.h"
+#include <ranging_wrapper.h>
+#include "core/data_filtering.h"
+#include "config.h"
+#include <core/log.h>
+
 #include <Wire.h>
 #include <MS5611.h>
 #include <Adafruit_Sensor.h>
@@ -7,13 +12,10 @@
 #include <Adafruit_LSM6DSL.h>
 #include <NTC_Thermistor.h>
 #include <RadioLib.h>
-#include "temperature_manager.h"
-#include <ranging_wrapper.h>
-#include "core/data_filtering.h"
 #include <Array.h>
-#include "config.h"
-#include <core/log.h>
 #include <PCF8575.h>
+#include <SparkFun_u-blox_GNSS_Arduino_Library.h> //http://librarymanager/All#SparkFun_u-blox_GNSS
+
 
 /**
  * @brief A class responsible for initializing, managing and reading data from all the different sensors and controllers. All the data is stored in the data struct
@@ -24,8 +26,8 @@ class Sensor_manager
 private:
     // SENSOR OBJECTS AND Communication
     // GPS UART0
-    TinyGPSPlus _gps;
-    SerialUART *_gps_serial;
+    SFE_UBLOX_GNSS _gps;
+    #define GPS_WIRE Wire
     unsigned long _last_gps_packet_time = 0;
 
     // BARO WIRE0
@@ -75,7 +77,7 @@ private:
 
     void position_calculation(Log &log, Config &config);
     void read_ranging(Log &log, Config &config);
-    void read_gps(Log &log, Config &config);
+    void read_gps(Log &log);
     void read_outer_baro(Log &log, Config &config);
     void read_inner_baro(Log &log, Config &config);
     void read_inner_temp_probe(Log &log, Config &config);
@@ -107,10 +109,14 @@ public:
     struct Sensor_data
     {
         // array data is ordered: x y z
-        float gps_lat = 0;      // deg
-        float gps_lng = 0;      // deg
-        float gps_height = 0;   // m
-        int gps_satellites = 0; // count
+        double gps_lat = 0;      // Latitude
+        double gps_lng = 0;      // Longitutude
+        float gps_height = 0;   // Altitude
+        int gps_satellites = 0; // Satellites in view
+        float gps_speed = 0; // Speed
+        float gps_heading = 0; // Heading
+        float gps_pdop = 0;  // Precision
+        uint32_t gps_epoch_time = 0;  // Time in unix
 
         float outer_baro_pressure = 0;
         float outer_baro_temp = 0;
@@ -124,11 +130,12 @@ public:
         float average_inner_temp = 0; // C
         float average_inner_temp_baro = 0;
         float average_outer_temp = 0; // C
+
         float heater_power = 0;       // 0-255
+        float target_temp = 0;
         float p = 0;                  // proportional * coefficient
         float i = 0;                  // integral * coefficient
         float d = 0;                  // derivative * coefficient
-        float target_temp = 0;
 
         float acc[3] = {0, 0, 0};  // m/s^2
         float gyro[3] = {0, 0, 0}; // dps
@@ -146,7 +153,6 @@ public:
         unsigned long time_since_last_gps = 0;            // ms
         unsigned long times_since_last_ranging_result[3]; // ms
         unsigned long time_since_last_ranging_pos = 0;    // ms
-        unsigned long gps_time = 0;                       //
     };
 
     // Set heater state
@@ -157,7 +163,6 @@ public:
         _temp_manager->reset();
     };
 
-    String header = "Data header:";
     Sensor_data data;
 
     String init(Log &log, Config &config);

@@ -161,9 +161,9 @@ void Log::init_flash_files(Config &config)
         }
 
         // Send info about files to base station
-        send_com_lora("Telemetry path: " + _telemetry_log_file_path_final, config);
-        send_com_lora("Info path: " + _info_log_file_path_final, config);
-        send_com_lora("Error path: " + _error_log_file_path_final, config);
+        send_com_lora("Telemetry path: " + _telemetry_log_file_path_final);
+        send_com_lora("Info path: " + _info_log_file_path_final);
+        send_com_lora("Error path: " + _error_log_file_path_final);
     }
 }
 
@@ -174,61 +174,76 @@ void Log::init(Config &config)
     init_flash(config);
 
     // Init LoRa
-    _com_lora = new RadioLib_Wrapper<RFM96>(config.com_config.CS, config.com_config.DIO0, config.com_config.RESET, config.com_config.DIO1, config.com_config.SPI);
-    _com_lora->configure_radio(config.com_config.FREQUENCY, config.com_config.TXPOWER, config.com_config.SPREADING, config.com_config.CODING_RATE, config.com_config.SIGNAL_BW, config.com_config.SYNC_WORD);
+    _com_lora = new RadioLib_Wrapper<radio_module>(config.com_config);
+    
+    bool status = _com_lora->configure_radio(config.com_config);
+    if (!status)
+    {
+        String msg = "Configuring LoRa failed";
+        log_error_msg_to_flash(msg);
+        Serial.println(msg);
+    }
     _com_lora->test_transmit();
 }
 
 // Sends the provided message using LoRa
-bool Log::send_com_lora(String msg, Config &config)
+bool Log::send_com_lora(String msg)
 {
+    _com_lora->add_checksum(msg);
     return _com_lora->transmit(msg);
 }
 
 // Checks if LoRa has received any messages. Sets the message to the received one, or to empty string otherwise
-void Log::receive_com_lora(String &msg, float &rssi, float &snr, Config &config)
+void Log::receive_com_lora(String &msg, float &rssi, float &snr)
 {
     // Get data from LoRa
     _com_lora->receive(msg, rssi, snr);
+    bool status = _com_lora->check_checksum(msg);
+    if (!status)
+    {
+        String error_msg = "Message checksum fail";
+        Serial.println(error_msg);
+        log_info_msg_to_flash(error_msg);
+    }
     Serial.println("Message received: " + msg);
 }
 
 // Sends a message over LoRa and logs the message to the info file
-void Log::send_info(String msg, Config &config)
+void Log::send_info(String msg)
 {
     // Prints message to serial
     Serial.println("! " + msg);
 
-    int state = send_com_lora(msg, config);
+    int state = send_com_lora(msg);
     if (state != RADIOLIB_ERR_NONE)
     {
         Serial.println("Transmit error: " + String(state));
     }
     // Log data to info file
     msg = String(millis()) + "," + msg;
-    write_to_file(msg, _info_log_file_path_final);
+    log_info_msg_to_flash(msg);
 }
 
 // Sends a message over LoRa and logs the message to the error file
-void Log::send_error(String msg, Config &config)
+void Log::send_error(String msg)
 {
     // Prints message to serial
     Serial.println("!!! " + msg);
 
-    int state = send_com_lora(msg, config);
+    int state = send_com_lora(msg);
     if (state != RADIOLIB_ERR_NONE)
     {
         Serial.println("Transmit error: " + String(state));
     }
     // Log data to error file
     msg = String(millis()) + "," + msg;
-    write_to_file(msg, _error_log_file_path_final);
+    log_error_msg_to_flash(msg);
 }
 
 // Send telemetry data packet over LoRa
-void Log::transmit_data(Config &config)
+void Log::transmit_data()
 {
-    int state = send_com_lora(_sendable_packet, config);
+    int state = send_com_lora(_sendable_packet);
     if (state != RADIOLIB_ERR_NONE)
     {
         Serial.println("Transmit error: " + String(state));

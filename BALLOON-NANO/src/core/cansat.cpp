@@ -14,8 +14,8 @@ void Cansat::init_all_com_bus(Config &config)
     // SPI1.setSCK(config.SPI1_SCK);
     // SPI1.begin();
 
-    // Wire.setSCL(config.WIRE0_SCL);
-    // Wire.setSDA(config.WIRE0_SDA);
+    Wire.setSCL(config.WIRE0_SCL);
+    Wire.setSDA(config.WIRE0_SDA);
 
     Wire1.setSCL(config.WIRE1_SCL);
     Wire1.setSDA(config.WIRE1_SDA);
@@ -31,10 +31,6 @@ void Cansat::init_all_com_bus(Config &config)
         }
     }
     */
-    Serial1.setRX(config.SERIAL1_RX);
-    Serial1.setTX(config.SERIAL1_TX);
-    Serial1.setFIFOSize(256); // once had a problem of not reading serial properly but this seemed to fix it
-    Serial1.begin(config.SERIAL1_BAUDRATE);
 }
 
 // Read last state from SD card
@@ -62,7 +58,7 @@ void Cansat::read_last_state(Cansat &cansat)
         char char_array[read_str_len];
         read_str.toCharArray(char_array, read_str_len);
 
-        cansat.log.send_com_lora("Last state char array: " + String(char_array), cansat.config);
+        cansat.log.send_com_lora("Last state char array: " + String(char_array));
 
         // Set the last state variables to the ones read from the file
         int result = sscanf(char_array,                                     // The char array to read from
@@ -119,7 +115,7 @@ String Cansat::receive_command(Cansat &cansat)
     String incoming_msg = "";
     float rssi;
     float snr;
-    cansat.log.receive_com_lora(incoming_msg, rssi, snr, cansat.config);
+    cansat.log.receive_com_lora(incoming_msg, rssi, snr);
     if (Serial.available() > 0)
     {
         incoming_msg = Serial.readString();
@@ -130,7 +126,7 @@ String Cansat::receive_command(Cansat &cansat)
     {
         incoming_msg.trim();
         Serial.println(incoming_msg + ", " + String(rssi) + ", " + String(snr));
-        cansat.log.send_info("Payload received message: " + incoming_msg, cansat.config);
+        cansat.log.send_info("Payload received message: " + incoming_msg);
     }
     // Return the message
     return incoming_msg;
@@ -207,7 +203,7 @@ void Cansat::check_if_should_restart(Cansat &cansat)
         }
         cansat.save_last_state(cansat);
 
-        cansat.log.send_info("Hard reset initalized", cansat.config);
+        cansat.log.send_info("Hard reset initalized");
 
         // Do a restart
         cansat.restart(cansat);
@@ -246,7 +242,7 @@ void Cansat::start_states(Cansat &cansat)
     // Check if Watchdog restart has happened
     if (watchdog_caused_reboot())
     {
-        cansat.log.send_info("Watchdog caused a reboot", cansat.config);
+        cansat.log.send_info("Watchdog caused a reboot");
     }
 
     // Save the current file index to last state
@@ -255,16 +251,16 @@ void Cansat::start_states(Cansat &cansat)
 
     // Check in which state should payload start in
     int last_state = cansat.config.last_state_variables.last_state;
-    cansat.log.send_info("Last state: " + String(last_state), cansat.config);
+    cansat.log.send_info("Last state: " + String(last_state));
 
     // Enable Watchdog
     watchdog_enable(cansat.config.WATCHDOG_TIMER, 1);
-    cansat.log.send_info("Watchdog is enabled with time: " + String(cansat.config.WATCHDOG_TIMER), cansat.config);
+    cansat.log.send_info("Watchdog is enabled with time: " + String(cansat.config.WATCHDOG_TIMER));
 
     // If ascent/descent state is not set, start in prepare state
     if (last_state == 0)
     {
-        cansat.log.send_info("No previous state. Starting from PREP state", cansat.config);
+        cansat.log.send_info("No previous state. Starting from PREP state");
         // Start prepare state
         current_state = State::PREP;
         prepare_state(cansat);
@@ -292,7 +288,7 @@ void Cansat::start_states(Cansat &cansat)
         // Set flag to know if a restart has happened
         _has_recovered_to_state = true;
 
-        cansat.log.send_info("Previous state ASCENT. Starting from ASCENT", cansat.config);
+        cansat.log.send_info("Previous state ASCENT. Starting from ASCENT");
 
         // Start ascent state
         current_state = State::ASCENT;
@@ -314,7 +310,7 @@ void Cansat::start_states(Cansat &cansat)
         // Set flag to know if a restart has happened
         _has_recovered_to_state = true;
 
-        cansat.log.send_info("Previous state DESCENT. Starting from DESCENT", cansat.config);
+        cansat.log.send_info("Previous state DESCENT. Starting from DESCENT");
 
         // Start descent state
         current_state = State::DESCENT;

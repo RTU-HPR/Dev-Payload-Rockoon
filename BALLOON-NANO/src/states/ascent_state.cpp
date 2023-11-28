@@ -15,11 +15,10 @@ void send_data_ascent(Cansat &cansat)
     if (millis() - last_data_transmit_time_ascent >= cansat.config.LORA_DATAPACKET_COOLDOWN_ASCENT)
     {
         // Send data by LoRa
-        cansat.log.transmit_data(cansat.config);
+        cansat.log.transmit_data();
         last_data_transmit_time_ascent = millis();
     }
 }
-
 
 // MAIN FUNCTIONS
 // Ascent state loop
@@ -44,7 +43,7 @@ bool ascent_state_loop(Cansat &cansat)
     // FOR TESTING PURPOSES
     if (incoming_msg == "set_descent")
     {
-        cansat.log.send_info("DESCENT state activated manually", cansat.config);
+        cansat.log.send_info("DESCENT state activated manually");
         return true;
     }
 
@@ -80,7 +79,7 @@ bool ascent_state_loop(Cansat &cansat)
         launch_rail_removed_cycle_count++;
         if (launch_rail_removed_cycle_count >= 10)
         {
-            cansat.log.send_info("Launch rail removed", cansat.config);
+            cansat.log.send_info("Launch rail removed");
             return true;
         }
     }
@@ -115,8 +114,8 @@ void ascent_state(Cansat &cansat)
         // Reset watchdog timer
         watchdog_update();
 
-        cansat.log.send_info(status, cansat.config);
-        cansat.log.send_info("Reset done", cansat.config);
+        cansat.log.send_info(status);
+        cansat.log.send_info("Reset done");
     }
 
     // Reset watchdog timer

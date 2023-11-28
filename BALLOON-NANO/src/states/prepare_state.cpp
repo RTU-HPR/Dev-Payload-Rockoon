@@ -96,7 +96,7 @@ bool prepare_state_loop(Cansat &cansat)
             // Save data to telemetry file
             //cansat.log.log_telemetry_data();
             // Send data by LoRa
-            cansat.log.transmit_data(cansat.config);
+            cansat.log.transmit_data();
             
             // Reset watchdog timer
             watchdog_update();
@@ -118,7 +118,7 @@ bool prepare_state_loop(Cansat &cansat)
     // Check if should arm
     else if (incoming_msg == cansat.config.ARM_MSG)
     {
-        cansat.log.send_info("Arming signal received", cansat.config);
+        cansat.log.send_info("Arming signal received");
         return true;
     }
     // Check if should format SD card
@@ -126,11 +126,11 @@ bool prepare_state_loop(Cansat &cansat)
     {
         if (cansat.log.format_storage(cansat.config))
         {
-            cansat.log.send_info("Formatting done", cansat.config);
+            cansat.log.send_info("Formatting done");
         }
         else
         {
-            cansat.log.send_info("Formatting fail", cansat.config);
+            cansat.log.send_info("Formatting fail");
         }
     }
     // Check if should reset eeprom values
@@ -147,7 +147,7 @@ bool prepare_state_loop(Cansat &cansat)
     else if (incoming_msg != "")
     {
         String noise_msg = "NOISE received: " + incoming_msg;
-        cansat.log.send_info(noise_msg, cansat.config);
+        cansat.log.send_info(noise_msg);
     }
     
     // Reset watchdog timer
@@ -175,9 +175,9 @@ void prepare_state(Cansat &cansat)
     // Reset watchdog timer
     watchdog_update();
 
-    cansat.log.send_info(status, cansat.config);
+    cansat.log.send_info(status);
 
-    cansat.log.send_info("Init done, waiting for arm", cansat.config);
+    cansat.log.send_info("Init done, waiting for arm");
 
     // Run prepare loop while waiting for arming signal
     while (!prepare_state_loop(cansat))

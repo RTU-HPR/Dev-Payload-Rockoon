@@ -7,7 +7,8 @@
 class Log
 {
 private:
-    RadioLib_Wrapper<RFM96> *_com_lora;
+    RadioLib_Wrapper<radio_module> *_com_lora;
+
     String _telemetry_log_file_path_final;
     String _info_log_file_path_final;
     String _error_log_file_path_final;
@@ -29,13 +30,13 @@ public:
     void init_flash_files(Config &config);
     bool format_storage(Config &config);
     
-    void send_info(String msg, Config &config);
-    void send_error(String msg, Config &config);
+    void send_info(String msg);
+    void send_error(String msg);
     
-    bool send_com_lora(String msg, Config &config);
-    void receive_com_lora(String &msg, float &rssi, float &snr, Config &config);
+    bool send_com_lora(String msg);
+    void receive_com_lora(String &msg, float &rssi, float &snr);
 
-    void transmit_data(Config &config);
+    void transmit_data();
     void log_telemetry_data();
     void log_telemetry_data_to_pc();
 

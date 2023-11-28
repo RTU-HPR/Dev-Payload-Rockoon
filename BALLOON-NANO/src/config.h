@@ -43,39 +43,48 @@ public:
     const bool LOG_TO_STORAGE = true;
 
     // 433 MHz LoRa
-    struct COM_CONFIG
+    #define radio_module SX1268
+    RadioLib_Wrapper<radio_module>::RADIO_CONFIG com_config
     {
-        float FREQUENCY = 434.5;
-        int CS = 2;
-        int DIO0 = 3;
-        int DIO1 = 5;
-        int RESET = 8; // schematic was changed from 4 -> 8
-        int SYNC_WORD = 0xF4;
-        int TXPOWER = 14;
-        int SPREADING = 10;
-        int CODING_RATE = 7;
-        float SIGNAL_BW = 125;
-        SPIClassRP2040 *SPI = &SPI1;
+        .FREQUENCY = 434.5,
+        .CS = 2,
+        .DIO0 = 3,
+        .DIO1 = 5,
+        .FAMILY = RadioLib_Wrapper<radio_module>::RADIO_CONFIG::CHIP_FAMILY::SX126X,
+        .rf_switching = RadioLib_Wrapper<radio_module>::RADIO_CONFIG::RF_SWITCHING::DIO2,
+        // .RX_ENABLE = 0, // only needed if rf_switching = gpio
+        // .TX_ENABLE = 0, // only needed if rf_switching = gpio
+        .RESET = 8,
+        .SYNC_WORD = 0xF4,
+        .TXPOWER = 14,
+        .SPREADING = 10,
+        .CODING_RATE = 7,
+        .SIGNAL_BW = 125,
+        .SPI_BUS = &SPI,
     };
-    COM_CONFIG com_config;
 
     // Ranging 2.4 GHZ LoRa
-    Ranging_Wrapper::Ranging_Slave RANGING_SLAVES[3] = {{.position = {0, 0, 0}, .address = 0x12345678},
-                                                        {.position = {0, 0, 0}, .address = 0xABCD9876},
-                                                        {.position = {0, 0, 0}, .address = 0x9A8B7C6D}};
-
+    Ranging_Wrapper::Ranging_Slave RANGING_SLAVES[3] = 
+    {
+        {.position = {0, 0, 0}, .address = 0x12345678},
+        {.position = {0, 0, 0}, .address = 0xABCD9876},
+        {.position = {0, 0, 0}, .address = 0x9A8B7C6D}
+    };
     Ranging_Wrapper::Mode LORA2400_MODE = Ranging_Wrapper::Mode::MASTER;
-    Ranging_Wrapper::Lora_Device ranging_device = {.FREQUENCY = 2405.6,
-                                                   .CS = 10,
-                                                   .DIO0 = 13, // busy
-                                                   .DIO1 = 12,
-                                                   .RESET = 11,
-                                                   .SYNC_WORD = 0xF5,
-                                                   .TXPOWER = 14,
-                                                   .SPREADING = 10,
-                                                   .CODING_RATE = 7,
-                                                   .SIGNAL_BW = 406.25,
-                                                   .SPI = &SPI1};
+    Ranging_Wrapper::Lora_Device ranging_device = 
+    {
+        .FREQUENCY = 2405.6,
+        .CS = 10,
+        .DIO0 = 13, // busy
+        .DIO1 = 12,
+        .RESET = 11,
+        .SYNC_WORD = 0xF5,
+        .TXPOWER = 14,
+        .SPREADING = 10,
+        .CODING_RATE = 7,
+        .SIGNAL_BW = 406.25,
+        .SPI = &SPI1
+    };
 
     const float HEATER_CUT_OFF_VOLTAGE = 5.9; // V
     const float DESIRED_HEATER_TEMP = 35.0;   // in C
@@ -113,14 +122,15 @@ public:
 
     // I2C
     // Wire0 enable if using gps
-    // const int WIRE0_SCL = 1;
-    // const int WIRE0_SDA = 0;
+    const int WIRE0_SCL = 1;
+    const int WIRE0_SDA = 0;
 
     // Wire1
     const int WIRE1_SCL = 15;
     const int WIRE1_SDA = 14;
 
     // I2C bus usage
+    // Wire1
     TwoWire *IMU_WIRE = &Wire1;
     TwoWire *STS35_WIRE = &Wire1;
     TwoWire *BMP280_WIRE = &Wire1;
@@ -132,7 +142,8 @@ public:
     const int MS5611_ADDRESS_I2C = 0x76;
     const int BMP280_ADDRESS_I2C = 0x77; // or 0x76 :D
     const int IMU_ADDRESS_I2C = 0x6B;  // or 0x6A
-    const int STS35_ADDRESS = 0x4B; // I2C Address: either 0x4A or 0x04B
+    const int STS35_ADDRESS_I2C = 0x4B; // I2C Address: either 0x4A or 0x04B
+    const int GPS_ADDRESS_I2C = 0x42;
 
     // SPI
     // SPI0
@@ -160,9 +171,9 @@ public:
     FS *FILE_SYSTEM = &SDFS; // if change to LittleFS need to change some code
 
     // GPS UART0
-    const int SERIAL1_RX = 1;
-    const int SERIAL1_TX = 0;
-    const long SERIAL1_BAUDRATE = 9600;
+    // const int SERIAL1_RX = 1;
+    // const int SERIAL1_TX = 0;
+    // const long SERIAL1_BAUDRATE = 9600;
     
     // OUTER TEMP ANALOG
     const int THERMISTOR_PIN = 28;
@@ -254,7 +265,7 @@ public:
     const String INFO_LOG_FILE_NAME_BASE_PATH = "/CANSAT_INFO";
     const String ERROR_LOG_FILE_NAME_BASE_PATH = "/CANSAT_ERROR";
 
-    const String TELEMETRY_HEADER = "gps_lat,gps_lng,gps_height,gps_satellites,r1_dist,r2_dist,r3_dist,r1_time_since,r2_time_since,r3_time_since,r_pos_lat,r_pos_lng,r_pos_time_since,inner_pressure,avg_inner_temp,avg_outer_temp,heater_power,acc_x,acc_y,acc_z,gps_time_since,time_on,avg_batt_voltage,gps_time,gyro_x,gyro_y,gyro_z,outer_temp_thermistor,raw_inner_temp_baro,raw_inner_temp_probe,batt_voltage,p_term,i_term,d_term,target_temp";
+    const String TELEMETRY_HEADER = "gps_epoch_time,gps_lat,gps_lng,gps_height,gps_speed,gps_time_since_last,acc_x,acc_y,acc_z,gyro_x,gyro_y,gyro_z,r1_dist,r2_dist,r3_dist,r1_time_since,r2_time_since,r3_time_since,r_pos_lat,r_pos_lng,r_pos_alt,r_pos_time_since,inner_baro_pressure,outer_baro_pressure,avg_inner_temp,avg_outer_temp,heater_power,time_on,avg_battery_voltage,gps_heading,gps_pdop,gps_satellites,raw_inner_temp,raw_outer_temp_thermistor,raw_inner_temp_baro,raw_outer_temp_baro,raw_batt_voltage,raw_heater_current,avg_heater_current,p_term,i_term,d_term,target_temp,r1_time,r1_rssi,r1_snr,r1_f_error,r2_time,r2_rssi,r2_snr,r2_f_error,r3_time,r3_rssi,r3_snr,r3_f_error";
     const String INFO_HEADER = "time_on,info";
     const String ERROR_HEADER = "time_on,error";
 };

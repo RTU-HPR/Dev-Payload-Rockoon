@@ -70,7 +70,7 @@ bool transmit = false; // sets the module in transmitting or receiving state
 #define radio_module SX1268
 RadioLib_Wrapper<radio_module>::RADIO_CONFIG com_config{
     .FREQUENCY = 434.5,
-    .CS = = 2,
+    .CS = 2,
     .DIO0 = 3,
     .DIO1 = 5,
     .FAMILY = RadioLib_Wrapper<radio_module>::RADIO_CONFIG::CHIP_FAMILY::SX126X,

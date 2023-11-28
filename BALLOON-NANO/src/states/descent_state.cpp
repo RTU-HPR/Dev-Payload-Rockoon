@@ -23,7 +23,7 @@ void send_data_descent(Cansat &cansat)
     if (millis() - last_data_transmit_time_descent >= cansat.config.LORA_DATAPACKET_COOLDOWN_DESCENT)
     {
         // Send data by LoRa
-        cansat.log.transmit_data(cansat.config);
+        cansat.log.transmit_data();
         last_data_transmit_time_descent = millis();
     }
 }
@@ -120,8 +120,8 @@ void descent_state(Cansat &cansat)
         // Reset watchdog timer
         watchdog_update();
 
-        cansat.log.send_info(status, cansat.config);
-        cansat.log.send_info("Reset done", cansat.config);
+        cansat.log.send_info(status);
+        cansat.log.send_info("Reset done");
     }
 
     parachute_ejection_time = state_start_time + cansat.config.TIME_FROM_LAUNCH_TO_EJECT;
