@@ -4,6 +4,7 @@
         "MOSI",
         "RADIOLIB",
         "RSSI",
+        "TCXO",
         "TXPOWER"
     ]
 }
