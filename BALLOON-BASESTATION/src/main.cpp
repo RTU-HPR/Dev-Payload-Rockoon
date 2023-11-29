@@ -8,7 +8,28 @@ String DATA_MSG = "data_send";
 String DATA_STOP_MSG = "data_stop";
 String HEATER_ENABLE = "heater_enable";
 
-RadioLib_Wrapper<RFM96> *com_lora;
+// 433 MHz LoRa
+#define radio_module RFM96
+RadioLib_Wrapper<radio_module> *com_lora;
+RadioLib_Wrapper<radio_module>::RADIO_CONFIG com_config{
+    .FREQUENCY = 434.5,
+    .CS = 7,
+    .DIO0 = 5,
+    .DIO1 = 4,
+    .FAMILY = RadioLib_Wrapper<radio_module>::RADIO_CONFIG::CHIP_FAMILY::SX127X,
+    .rf_switching = RadioLib_Wrapper<radio_module>::RADIO_CONFIG::RF_SWITCHING::DISABLED,
+    // .RX_ENABLE = 0, // only needed if rf_switching = gpio
+    // .TX_ENABLE = 0, // only needed if rf_switching = gpio
+    .RESET = 6,
+    .SYNC_WORD = 0xF4,
+    .TXPOWER = 14,
+    .SPREADING = 10,
+    .CODING_RATE = 7,
+    .SIGNAL_BW = 125,
+    .SPI_BUS = &SPI1,
+};
+
+/*
 struct COM_CONFIG
 {
     float FREQUENCY = 434.5;
@@ -25,6 +46,7 @@ struct COM_CONFIG
 };
 
 COM_CONFIG com_config;
+*/
 
 Ranging_Wrapper::Mode LORA2400_MODE = Ranging_Wrapper::Mode::SLAVE;
 Ranging_Wrapper ranging_lora;
@@ -48,15 +70,23 @@ bool transmiting_mode = false;
 void read_main_lora()
 {
     String msg = "";
-    float rssi = 0, snr = 0;
+    float rssi;
+    float snr;
 
     // Get data from LoRa
-    com_lora->receive(msg, rssi, snr);
-
-    if (msg == "")
+    if (!com_lora->receive(msg, rssi, snr))
     {
         return;
     }
+
+    bool status = com_lora->check_checksum(msg);
+    if (!status)
+    {
+        String error_msg = "Message checksum fail";
+        Serial.println(error_msg);
+    }
+    Serial.println("Message received: " + msg);
+
     if (msg.charAt(0) == '!')
     {
         Serial.print(msg);
@@ -74,14 +104,20 @@ void read_main_lora()
 
 void send_main_lora(String msg)
 {
-    Serial.println("Transmit successful: " + String(com_lora->transmit(msg)));
+    com_lora->add_checksum(msg);
+    com_lora->transmit(msg);
 }
 
 void init_LoRa_main()
 {
     // Init LoRa
-    com_lora = new RadioLib_Wrapper<RFM96>(com_config.CS, com_config.DIO0, com_config.RESET, com_config.DIO1, com_config.SPI_BUS);
-    com_lora->configure_radio(com_config.FREQUENCY, com_config.TXPOWER, com_config.SPREADING, com_config.CODING_RATE, com_config.SIGNAL_BW, com_config.SYNC_WORD);
+    com_lora = new RadioLib_Wrapper<radio_module>(com_config);
+    bool status = com_lora->configure_radio(com_config);
+    if (!status)
+    {
+        String msg = "Configuring LoRa failed";
+        Serial.println(msg);
+    }
     com_lora->test_transmit();
 }
 

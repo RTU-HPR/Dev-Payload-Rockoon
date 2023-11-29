@@ -197,7 +197,11 @@ bool Log::send_com_lora(String msg)
 void Log::receive_com_lora(String &msg, float &rssi, float &snr)
 {
     // Get data from LoRa
-    _com_lora->receive(msg, rssi, snr);
+    if (!_com_lora->receive(msg, rssi, snr))
+    {
+        return;
+    }
+    
     bool status = _com_lora->check_checksum(msg);
     if (!status)
     {
