@@ -19,61 +19,31 @@ void Log::init_flash(Config &config)
 
     if (_flash->setConfig(sd_config))
     {
-        Serial.println("Config set");
-    }
-    else
-    {
-        Serial.println("Config not set");
+        send_error("Config not set");
     }
 
     // Initialize flash
-    if (_flash->begin())
+    if (!_flash->begin())
     {
-        Serial.println("FileSystem init success");
-    }
-    else
-    {
-        Serial.println("FileSystem init error");
+        send_error("FileSystem init error");
         return;
     }
-
-    if (!_flash->exists(config.LAST_STATE_VARIABLE_FILE_NAME))
-    {
-        File file = _flash->open(config.LAST_STATE_VARIABLE_FILE_NAME, "w");
-        String data;
-        data += String(config.last_state_variables.last_state);
-        data += ",";
-        data += String(config.last_state_variables.last_log_file_index);
-        data += ",";
-        data += String(config.last_state_variables.last_inner_temp);
-        data += ",";
-        data += String(config.last_state_variables.last_integral_term);
-        data += ",";
-        data += String(config.last_state_variables.last_safe_temp);
-        data += ",";
-        data += String(config.last_state_variables.outer_baro_failed);
-        data += ",";
-        data += String(config.last_state_variables.inner_baro_failed);
-        data += ",";
-        data += String(config.last_state_variables.inner_temp_probe_failed);
-        data += ",";
-        data += String(config.last_state_variables.imu_failed);
-        data += ",";
-        data += String(config.last_state_variables.outer_thermistor_failed);
-        data += ",";
-        data += String(config.last_state_variables.inner_temp_probe_restarted);
-        data += ",";
-        data += String(config.last_state_variables.imu_restarted);
-        file.println(data);
-        file.close();
-        Serial.println("Created last save state file");
-    }
-
-    // FSInfo64 fsinfo;
-    //_flash->info64(fsinfo);
-    // Serial.println("Current size:" + String((unsigned long)fsinfo.usedBytes / 1024) + "/" + String((unsigned long)fsinfo.totalBytes / 1024));
-
     _flash_initialized = true;
+    send_info("Flash init success");
+
+    init_flash_files();
+}
+void Log::init_com_lora(Config &config)
+{
+    _com_lora = new RadioLib_Wrapper<radio_module>(config.com_config);
+
+    if (_com_lora->configure_radio(config.com_config))
+    {
+        send_error("Configuring LoRa failed");
+        return;
+    }
+    _com_lora->test_transmit();
+    send_info("Lora init success")
 }
 
 // Writes a given message to a file on the SD card
@@ -86,11 +56,35 @@ void Log::write_to_file(String msg, String file_name)
         File file = _flash->open(file_name, "a+");
         if (!file)
         {
-            Serial.println("Failed opening file: " + String(file_name));
+            send_error("Failed opening file: " + String(file_name));
             return;
         }
         file.println(msg);
         file.close();
+    }
+}
+// Sends the provided message using LoRa
+bool Log::send_com_lora(String msg, bool retry_till_sent = false)
+{
+    _com_lora->add_checksum(msg);
+
+    if (retry_till_sent)
+    {
+        unsigned int start_time = millis();
+        bool timeout = false;
+        while (!_com_lora->transmit(msg) || !timeout))
+            {
+                delay(5);
+                if (millis() > start_time + 5000)
+                {
+                    timeout = true;
+                }
+            }
+        return !timeout;
+    }
+    else
+    {
+        return _com_lora->transmit(msg);
     }
 }
 
@@ -137,17 +131,17 @@ void Log::init_flash_files(Config &config)
 
             if (!telemetry_file)
             {
-                Serial.println("Failed opening telemetry file");
+                send_error("Failed opening telemetry file");
                 return;
             }
             if (!error_file)
             {
-                Serial.println("Failed opening error file");
+                send_error("Failed opening error file");
                 return;
             }
             if (!info_file)
             {
-                Serial.println("Failed opening info file");
+                send_error("Failed opening info file");
                 return;
             }
 
@@ -159,11 +153,6 @@ void Log::init_flash_files(Config &config)
             error_file.close();
             info_file.close();
         }
-
-        // Send info about files to base station
-        send_com_lora("Telemetry path: " + _telemetry_log_file_path_final);
-        send_com_lora("Info path: " + _info_log_file_path_final);
-        send_com_lora("Error path: " + _error_log_file_path_final);
     }
 }
 
@@ -172,24 +161,11 @@ void Log::init(Config &config)
 {
     // Init SD card
     init_flash(config);
-
-    // Init LoRa
-    _com_lora = new RadioLib_Wrapper<radio_module>(config.com_config);
-    
-    bool status = _com_lora->configure_radio(config.com_config);
-    if (!status)
-    {
-        String msg = "Configuring LoRa failed";
-        Serial.println(msg);
-    }
-    _com_lora->test_transmit();
-}
-
-// Sends the provided message using LoRa
-bool Log::send_com_lora(String msg)
-{
-    // _com_lora->add_checksum(msg);
-    return _com_lora->transmit(msg);
+    init_lora(config);
+    // Send info about files to base station
+    send_info("Telemetry path: " + _telemetry_log_file_path_final);
+    send_info("Info path: " + _info_log_file_path_final);
+    send_info("Error path: " + _error_log_file_path_final);
 }
 
 // Checks if LoRa has received any messages. Sets the message to the received one, or to empty string otherwise
@@ -200,15 +176,12 @@ void Log::receive_com_lora(String &msg, float &rssi, float &snr)
     {
         return;
     }
-    
-    bool status = true;//_com_lora->check_checksum(msg);
-    if (!status)
+
+    if (!_com_lora->check_checksum(msg);)
     {
-        String error_msg = "Message checksum fail";
-        Serial.println(error_msg);
-        log_info_msg_to_flash(error_msg);
+        send_info("Message checksum fail:" + msg;);
     }
-    Serial.println("Message received: " + msg);
+    send_info("Message received: " + msg);
 }
 
 // Sends a message over LoRa and logs the message to the info file
@@ -217,14 +190,14 @@ void Log::send_info(String msg)
     // Prints message to serial
     Serial.println("! " + msg);
 
-    int state = send_com_lora(msg);
-    if (state != RADIOLIB_ERR_NONE)
+    if (!send_com_lora(msg, true))
     {
-        Serial.println("Transmit error: " + String(state));
+        // failed sending lora msg mybe error
     }
+
     // Log data to info file
     msg = String(millis()) + "," + msg;
-    log_info_msg_to_flash(msg);
+    write_to_file(msg, _info_log_file_path_final);
 }
 
 // Sends a message over LoRa and logs the message to the error file
@@ -233,49 +206,30 @@ void Log::send_error(String msg)
     // Prints message to serial
     Serial.println("!!! " + msg);
 
-    int state = send_com_lora(msg);
-    if (state != RADIOLIB_ERR_NONE)
+    if (!send_com_lora(msg, true))
     {
-        Serial.println("Transmit error: " + String(state));
+        // failed sending lora msg mybe error
     }
+
     // Log data to error file
     msg = String(millis()) + "," + msg;
-    log_error_msg_to_flash(msg);
-}
-
-// Send telemetry data packet over LoRa
-void Log::transmit_data()
-{
-    int state = send_com_lora(_sendable_packet);
-    if (state != RADIOLIB_ERR_NONE)
-    {
-        Serial.println("Transmit error: " + String(state));
-    }
-}
-
-// Logs the full data packet to SD card
-void Log::log_telemetry_data()
-{
-    write_to_file(_loggable_packet, _telemetry_log_file_path_final);
-}
-
-// Sends the full data packet to Serial port
-void Log::log_telemetry_data_to_pc()
-{
-    Serial.print("/*");
-    // Serial.print(sendable_packet);
-    Serial.print(_loggable_packet);
-    Serial.println("*/");
-}
-
-// Logs the provided info message to info file on SD card
-void Log::log_info_msg_to_flash(String msg)
-{
-    write_to_file(msg, _info_log_file_path_final);
-}
-
-// Logs the provided error message to error file on SD card
-void Log::log_error_msg_to_flash(String msg)
-{
     write_to_file(msg, _error_log_file_path_final);
+}
+
+void Log::send_data(String sendable_packet, String loggable_packet, bool lora = true, bool flash = true, bool pc = true)
+{
+    if (lora)
+    {
+        send_com_lora(sendable_packet);
+    }
+    if (flash)
+    {
+        write_to_file(loggable_packet, _telemetry_log_file_path_final);
+    }
+    if (pc)
+    {
+        Serial.print("/*");
+        Serial.print(loggable_packet);
+        Serial.println("*/");
+    }
 }

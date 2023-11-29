@@ -77,7 +77,7 @@ void Sensor_manager::read_ranging(Log &log, Config &config)
         if (result.distance != 0 && result.time != 0)
         {
             data.ranging_results[_last_slave_index] = result;
-            //Serial.println(_last_slave_index);
+            // Serial.println(_last_slave_index);
         }
 
         // move to next slave
@@ -121,7 +121,7 @@ void Sensor_manager::read_gps(Log &log)
             data.gps_satellites = _gps.getSIV();
             data.gps_speed = _gps.getGroundSpeed() / 1000.0;
             data.gps_heading = _gps.getHeading() / 10000.0;
-            data.gps_pdop = _gps.getPDOP() / 100.0; 
+            data.gps_pdop = _gps.getPDOP() / 100.0;
             data.gps_epoch_time = _gps.getUnixEpoch();
         }
         else
@@ -591,10 +591,10 @@ String Sensor_manager::init(Log &log, Config &config)
     // GPS
     if (_gps.begin(GPS_WIRE, config.GPS_ADDRESS_I2C))
     {
-        _gps.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn off NMEA noise)
-        _gps.setMeasurementRate(500); // 2 Hz
-        _gps.setNavigationFrequency(2); //Produce two solutions per second
-        _gps.setAutoPVT(true); //Tell the GNSS to "send" each solution
+        _gps.setI2COutput(COM_TYPE_UBX); // Set the I2C port to output UBX only (turn off NMEA noise)
+        _gps.setMeasurementRate(500);    // 2 Hz
+        _gps.setNavigationFrequency(2);  // Produce two solutions per second
+        _gps.setAutoPVT(true);           // Tell the GNSS to "send" each solution
 
         if (!_gps.setDynamicModel(DYN_MODEL_AIRBORNE2g) == false) // Set the dynamic model to Airborne2g
         {
@@ -809,37 +809,37 @@ void Sensor_manager::read_data(Log &log, Config &config)
     read_ranging(log, config);
     position_calculation(log, config);
     read_time();
-
-    // Update data packets
-    update_data_packet(data, log._sendable_packet, log._loggable_packet);
 }
-
+void Sensor_manager::get_data_packets(String &sendable_packet, String &loggable_packet)
+{
+    update_data_packet(data, sendable_packet, loggable_packet);
+}
 // Updates the message data packets with newest sensor data
 void Sensor_manager::update_data_packet(Sensor_data &data, String &result_sent, String &result_log)
 {
     String packet;
     // GPS
-    packet += String(data.gps_epoch_time, 0);   // 1
+    packet += String(data.gps_epoch_time, 0); // 1
     packet += ",";
-    packet += String(data.gps_lat, 6);          // 2
+    packet += String(data.gps_lat, 6); // 2
     packet += ",";
-    packet += String(data.gps_lng, 6);          // 3
+    packet += String(data.gps_lng, 6); // 3
     packet += ",";
-    packet += String(data.gps_height, 2);       // 4
+    packet += String(data.gps_height, 2); // 4
     packet += ",";
-    packet += String(data.gps_speed, 2);        // 5
+    packet += String(data.gps_speed, 2); // 5
     packet += ",";
     packet += String(data.time_since_last_gps); // 6
     packet += ",";
 
     // Accelerometer
-    packet += String(data.acc[0], 4);  // 7
+    packet += String(data.acc[0], 4); // 7
     packet += ",";
-    packet += String(data.acc[1], 4);  // 8
+    packet += String(data.acc[1], 4); // 8
     packet += ",";
-    packet += String(data.acc[2], 4);  // 9
+    packet += String(data.acc[2], 4); // 9
     packet += ",";
-    
+
     // Gyro
     packet += String(data.gyro[0], 2); // 10
     packet += ",";
@@ -849,11 +849,11 @@ void Sensor_manager::update_data_packet(Sensor_data &data, String &result_sent, 
     packet += ",";
 
     // Ranging
-    packet += String(data.ranging_results[0].distance, 2);     // 13
+    packet += String(data.ranging_results[0].distance, 2); // 13
     packet += ",";
-    packet += String(data.ranging_results[1].distance, 2);     // 14
+    packet += String(data.ranging_results[1].distance, 2); // 14
     packet += ",";
-    packet += String(data.ranging_results[2].distance, 2);     // 15
+    packet += String(data.ranging_results[2].distance, 2); // 15
     packet += ",";
     packet += String(data.times_since_last_ranging_result[0]); // 16
     packet += ",";
@@ -861,98 +861,98 @@ void Sensor_manager::update_data_packet(Sensor_data &data, String &result_sent, 
     packet += ",";
     packet += String(data.times_since_last_ranging_result[2]); // 18
     packet += ",";
-    packet += String(data.ranging_position.lat, 6);            // 19
+    packet += String(data.ranging_position.lat, 6); // 19
     packet += ",";
-    packet += String(data.ranging_position.lng, 6);            // 20
+    packet += String(data.ranging_position.lng, 6); // 20
     packet += ",";
-    packet += String(data.ranging_position.height, 2);         // 21
+    packet += String(data.ranging_position.height, 2); // 21
     packet += ",";
-    packet += String(data.time_since_last_ranging_pos);        // 22
+    packet += String(data.time_since_last_ranging_pos); // 22
     packet += ",";
 
     // Baro
-    packet += String(data.inner_baro_pressure, 0);    // 23
+    packet += String(data.inner_baro_pressure, 0); // 23
     packet += ",";
-    packet += String(data.outer_baro_pressure, 0);    // 24
+    packet += String(data.outer_baro_pressure, 0); // 24
     packet += ",";
 
     // Temperatures
-    packet += String(data.average_inner_temp, 2);     // 25
+    packet += String(data.average_inner_temp, 2); // 25
     packet += ",";
-    packet += String(data.average_outer_temp, 2);     // 26
+    packet += String(data.average_outer_temp, 2); // 26
     packet += ",";
 
     // Heater
-    packet += String(data.heater_power);              // 27
+    packet += String(data.heater_power); // 27
     packet += ",";
-    
+
     // Misc
     packet += ",";
-    packet += String(data.time);                      // 28
+    packet += String(data.time); // 28
     packet += ",";
-    packet += String(data.average_batt_voltage, 2);   // 29
+    packet += String(data.average_batt_voltage, 2); // 29
 
     result_sent = packet;
 
     packet += ",";
 
     // GPS
-    packet += String(data.gps_heading, 2);            // 30
+    packet += String(data.gps_heading, 2); // 30
     packet += ",";
-    packet += String(data.gps_pdop, 0);               // 31
+    packet += String(data.gps_pdop, 0); // 31
     packet += ",";
-    packet += String(data.gps_satellites, 0);         // 32
+    packet += String(data.gps_satellites, 0); // 32
     packet += ",";
-    
+
     // Temperatures
-    packet += String(data.inner_temp_probe, 2);       // 33
+    packet += String(data.inner_temp_probe, 2); // 33
     packet += ",";
-    packet += String(data.outer_temp_thermistor, 2);  // 34
+    packet += String(data.outer_temp_thermistor, 2); // 34
     packet += ",";
-    packet += String(data.inner_baro_temp, 2);        // 35
+    packet += String(data.inner_baro_temp, 2); // 35
     packet += ",";
-    packet += String(data.outer_baro_temp, 2);        // 36
+    packet += String(data.outer_baro_temp, 2); // 36
 
     // Voltage/current
-    packet += String(data.batt_voltage, 2);           // 37
+    packet += String(data.batt_voltage, 2); // 37
     packet += ",";
-    packet += String(data.heater_current, 2);         // 38
+    packet += String(data.heater_current, 2); // 38
     packet += ",";
     packet += String(data.average_heater_current, 2); // 39
     packet += ",";
-    
+
     // PID
-    packet += String(data.p, 4);            // 40
+    packet += String(data.p, 4); // 40
     packet += ",";
-    packet += String(data.i, 4);            // 41
+    packet += String(data.i, 4); // 41
     packet += ",";
-    packet += String(data.d, 4);            // 42
+    packet += String(data.d, 4); // 42
     packet += ",";
-    packet += String(data.target_temp, 1);  // 43
+    packet += String(data.target_temp, 1); // 43
     packet += ",";
 
     // Ranging
-    packet += String(data.ranging_results[0].time);       // 44
+    packet += String(data.ranging_results[0].time); // 44
     packet += ",";
-    packet += String(data.ranging_results[0].rssi, 2);    // 45
+    packet += String(data.ranging_results[0].rssi, 2); // 45
     packet += ",";
-    packet += String(data.ranging_results[0].snr, 2);     // 46
+    packet += String(data.ranging_results[0].snr, 2); // 46
     packet += ",";
     packet += String(data.ranging_results[0].f_error, 2); // 47
     packet += ",";
-    packet += String(data.ranging_results[1].time);       // 48
+    packet += String(data.ranging_results[1].time); // 48
     packet += ",";
-    packet += String(data.ranging_results[1].rssi, 2);    // 49
+    packet += String(data.ranging_results[1].rssi, 2); // 49
     packet += ",";
-    packet += String(data.ranging_results[1].snr, 2);     // 50
+    packet += String(data.ranging_results[1].snr, 2); // 50
     packet += ",";
     packet += String(data.ranging_results[1].f_error, 2); // 51
     packet += ",";
-    packet += String(data.ranging_results[2].time);       // 52
+    packet += String(data.ranging_results[2].time); // 52
     packet += ",";
-    packet += String(data.ranging_results[2].rssi, 2);    // 53
+    packet += String(data.ranging_results[2].rssi, 2); // 53
     packet += ",";
-    packet += String(data.ranging_results[2].snr, 2);     // 54
+    packet += String(data.ranging_results[2].snr, 2); // 54
     packet += ",";
     packet += String(data.ranging_results[2].f_error, 2); // 55
 

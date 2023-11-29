@@ -16,7 +16,6 @@
 #include <PCF8575.h>
 #include <SparkFun_u-blox_GNSS_Arduino_Library.h> //http://librarymanager/All#SparkFun_u-blox_GNSS
 
-
 /**
  * @brief A class responsible for initializing, managing and reading data from all the different sensors and controllers. All the data is stored in the data struct
  *
@@ -24,10 +23,12 @@
 class Sensor_manager
 {
 private:
+    String _loggable_packet = "";
+    String _sendable_packet = "";
     // SENSOR OBJECTS AND Communication
     // GPS UART0
     SFE_UBLOX_GNSS _gps;
-    #define GPS_WIRE Wire
+#define GPS_WIRE Wire
     unsigned long _last_gps_packet_time = 0;
 
     // BARO WIRE0
@@ -87,6 +88,7 @@ private:
     void update_heater(Log &log, Config &config);
     void read_batt_voltage(Log &log, Config &config);
     void read_heater_current(Log &log, Config &config);
+    void update_data_packet(Sensor_data &data, String &result_sent, String &result_log);
 
 public:
     // Temp manager
@@ -109,14 +111,14 @@ public:
     struct Sensor_data
     {
         // array data is ordered: x y z
-        double gps_lat = 0;      // Latitude
-        double gps_lng = 0;      // Longitutude
-        float gps_height = 0;   // Altitude
-        int gps_satellites = 0; // Satellites in view
-        float gps_speed = 0; // Speed
-        float gps_heading = 0; // Heading
-        float gps_pdop = 0;  // Precision
-        uint32_t gps_epoch_time = 0;  // Time in unix
+        double gps_lat = 0;          // Latitude
+        double gps_lng = 0;          // Longitutude
+        float gps_height = 0;        // Altitude
+        int gps_satellites = 0;      // Satellites in view
+        float gps_speed = 0;         // Speed
+        float gps_heading = 0;       // Heading
+        float gps_pdop = 0;          // Precision
+        uint32_t gps_epoch_time = 0; // Time in unix
 
         float outer_baro_pressure = 0;
         float outer_baro_temp = 0;
@@ -131,11 +133,11 @@ public:
         float average_inner_temp_baro = 0;
         float average_outer_temp = 0; // C
 
-        float heater_power = 0;       // 0-255
+        float heater_power = 0; // 0-255
         float target_temp = 0;
-        float p = 0;                  // proportional * coefficient
-        float i = 0;                  // integral * coefficient
-        float d = 0;                  // derivative * coefficient
+        float p = 0; // proportional * coefficient
+        float i = 0; // integral * coefficient
+        float d = 0; // derivative * coefficient
 
         float acc[3] = {0, 0, 0};  // m/s^2
         float gyro[3] = {0, 0, 0}; // dps
@@ -172,5 +174,5 @@ public:
     void set_status_led_1(Config &config, bool state);
     void set_status_led_2(Config &config, bool state);
     void read_data(Log &log, Config &config);
-    void update_data_packet(Sensor_data &data, String &result_sent, String &result_log);
+    void get_data_packets(String &sendable_packet, String &loggable_packet);
 };
