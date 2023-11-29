@@ -123,7 +123,8 @@ void start()
             {
                 // Serial.println("Msg not sent");
             }
-            delay(1000);
+            transmit = false;
+            //delay(1000);
         }
         else
         {
@@ -134,6 +135,8 @@ void start()
             bool received_status = _com_lora->receive(msg, rssi, snr);
             if (received_status)
             {
+                transmit = true;
+                delay(100);
                 Serial.println("Message received RAW MSG: " + msg + "  RSSI: " + String(rssi) + "   SNR: " + String(snr));
                 if (_com_lora->check_checksum(msg))
                 {

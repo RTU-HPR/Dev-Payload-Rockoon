@@ -16,9 +16,12 @@ void Cansat::init_all_com_bus(Config &config)
 
     Wire.setSCL(config.WIRE0_SCL);
     Wire.setSDA(config.WIRE0_SDA);
+    Wire.begin();
 
     Wire1.setSCL(config.WIRE1_SCL);
     Wire1.setSDA(config.WIRE1_SDA);
+    Wire1.begin();
+
 
     // Initialize PC serial
     /*
@@ -220,7 +223,7 @@ void Cansat::start_states(Cansat &cansat)
     {
         while (!Serial)
         {
-            delay(500);
+            delay(100);
         }
     }
 
@@ -254,7 +257,7 @@ void Cansat::start_states(Cansat &cansat)
     cansat.log.send_info("Last state: " + String(last_state));
 
     // Enable Watchdog
-    watchdog_enable(cansat.config.WATCHDOG_TIMER, 1);
+    // watchdog_enable(cansat.config.WATCHDOG_TIMER, 1);
     cansat.log.send_info("Watchdog is enabled with time: " + String(cansat.config.WATCHDOG_TIMER));
 
     // If ascent/descent state is not set, start in prepare state

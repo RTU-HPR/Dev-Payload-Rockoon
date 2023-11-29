@@ -13,7 +13,7 @@
 3. run the start function
 */
 
-#include <gps_i2c_test.h>
+#include <lora_test.h>
 
 void setup()
 {

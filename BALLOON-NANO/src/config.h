@@ -83,7 +83,7 @@ public:
         .SPREADING = 10,
         .CODING_RATE = 7,
         .SIGNAL_BW = 406.25,
-        .SPI = &SPI1
+        .SPI = &SPI
     };
 
     const float HEATER_CUT_OFF_VOLTAGE = 5.9; // V
@@ -113,7 +113,7 @@ public:
     const unsigned int DESCENT_STATE_SAVE_UPDATE_INTERVAL = 5000;
 
     // Watchdog
-    const int WATCHDOG_TIMER = 5000; // Max is 8400
+    const int WATCHDOG_TIMER = 8000; // Max is 8400
 
     // Sensor power
     const int SENSOR_POWER_ENABLE_PIN = 17;
@@ -139,8 +139,8 @@ public:
 
     // I2C addresses
     const int PORT_EXTENDER_ADDRESS_I2C = 0x20;
-    const int MS5611_ADDRESS_I2C = 0x76;
-    const int BMP280_ADDRESS_I2C = 0x77; // or 0x76 :D
+    const int MS5611_ADDRESS_I2C = 0x77;
+    const int BMP280_ADDRESS_I2C = 0x76; // or 0x76 :D
     const int IMU_ADDRESS_I2C = 0x6B;  // or 0x6A
     const int STS35_ADDRESS_I2C = 0x4B; // I2C Address: either 0x4A or 0x04B
     const int GPS_ADDRESS_I2C = 0x42;
@@ -158,7 +158,7 @@ public:
 
     // SPI bus usage
     // Sd card
-    const int SD_CARD_CS = 20;
+    const int SD_CARD_CS = 9;
     SPIClassRP2040 *SD_CARD_SPI = &SPI;
  
     // Port extender

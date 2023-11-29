@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <SPI.h>
+#include <Wire.h>
 #include "ranging_wrapper.h"
 #include <RadioLib_wrapper.h>
 
@@ -65,7 +66,7 @@ Ranging_Wrapper::Lora_Device ranging_device = {.FREQUENCY = 2405.6,
 const int buzzer_pin = 3;
 const int buzz_length = 200;
 bool master_basestation = true;
-bool transmiting_mode = false;
+bool transmiting_mode = true;
 
 void read_main_lora()
 {
@@ -166,6 +167,9 @@ void loop()
 
     if (transmiting_mode)
     {
+        send_main_lora("AHHHHH");
+        transmiting_mode = false;
+        /*
         if (Serial.available() > 0)
         {
             String incoming_msg = Serial.readString();
@@ -207,10 +211,17 @@ void loop()
                 }
             }
         }
+        */
     }
     else
     {
         read_main_lora();
+        if (incoming_msg != "")
+        {
+              
+        } 
+        /*
+
         if (Serial.available() > 0)
         {
             String incoming_msg = Serial.readString();
@@ -224,10 +235,12 @@ void loop()
                 }
                 else
                 {
+                    transmiting_mode = true;
                     Serial.println("Unexpected input : " + incoming_msg);
                 }
             }
         }
+        */
     }
 
     /// enable raning slave

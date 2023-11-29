@@ -13,10 +13,24 @@
                     "log": false,
                     "max": 0,
                     "min": 0,
+                    "title": "GPS Time",
+                    "units": "s",
+                    "value": "%1",
+                    "widget": ""
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": false,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
                     "title": "Latitude",
                     "units": "°",
-                    "value": "%1",
-                    "widget": "lat"
+                    "value": "%2",
+                    "widget": ""
                 },
                 {
                     "alarm": 0,
@@ -29,8 +43,8 @@
                     "min": 0,
                     "title": "Longitude",
                     "units": "°",
-                    "value": "%2",
-                    "widget": "lon"
+                    "value": "%3",
+                    "widget": ""
                 },
                 {
                     "alarm": 0,
@@ -43,75 +57,311 @@
                     "min": 0,
                     "title": "Altitude",
                     "units": "m",
-                    "value": "%3",
-                    "widget": "alt"
+                    "value": "%4",
+                    "widget": ""
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": false,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "Speed",
+                    "units": "m/s",
+                    "value": "%5",
+                    "widget": ""
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": false,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "Since last",
+                    "units": "s",
+                    "value": "%6",
+                    "widget": ""
                 }
             ],
             "title": "GPS",
-            "widget": "map"
+            "widget": ""
         },
         {
             "datasets": [
                 {
                     "alarm": 0,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": false,
-                    "led": false,
-                    "log": false,
-                    "max": 0,
-                    "min": 0,
-                    "title": "Latitude",
-                    "units": "°",
-                    "value": "%11",
-                    "widget": "lat"
-                },
-                {
-                    "alarm": 0,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": false,
-                    "led": false,
-                    "log": false,
-                    "max": 0,
-                    "min": 0,
-                    "title": "Longitude",
-                    "units": "°",
-                    "value": "%12",
-                    "widget": "lon"
-                },
-                {
-                    "alarm": 0,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": false,
-                    "led": false,
-                    "log": false,
-                    "max": 0,
-                    "min": 0,
-                    "title": "Altitude",
-                    "units": "m",
-                    "value": "%13",
-                    "widget": "alt"
-                }
-            ],
-            "title": "Ranging",
-            "widget": "map"
-        },
-        {
-            "datasets": [
-                {
-                    "alarm": 110000,
                     "fft": false,
                     "fftSamples": 1024,
                     "graph": true,
                     "led": false,
                     "log": false,
-                    "max": 110000,
+                    "max": 0,
                     "min": 0,
-                    "title": "Pressure",
-                    "units": "Pa",
+                    "title": "Acc X",
+                    "units": "m/s²",
+                    "value": "%7",
+                    "widget": "x"
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": true,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "Acc Y",
+                    "units": "m/s²",
+                    "value": "%8",
+                    "widget": "y"
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": true,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "Acc Z",
+                    "units": "m/s²",
+                    "value": "%9",
+                    "widget": "z"
+                }
+            ],
+            "title": "Acc",
+            "widget": "multiplot"
+        },
+        {
+            "datasets": [
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": false,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "Gyro X",
+                    "units": "Dps",
+                    "value": "%10",
+                    "widget": ""
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": false,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "Gyro Y",
+                    "units": "Dps",
+                    "value": "%11",
+                    "widget": ""
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": false,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "Gyro Z",
+                    "units": "Dps",
+                    "value": "%12",
+                    "widget": ""
+                }
+            ],
+            "title": "Gyro",
+            "widget": "multiplot"
+        },
+        {
+            "datasets": [
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": false,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "R1 Distance",
+                    "units": "m",
+                    "value": "%13",
+                    "widget": ""
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": false,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "R2 Distance",
+                    "units": "m",
+                    "value": "%14",
+                    "widget": ""
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": false,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "R3 Distance",
+                    "units": "m",
                     "value": "%15",
+                    "widget": ""
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": false,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "R1 Since",
+                    "units": "ms",
+                    "value": "%16",
+                    "widget": ""
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": false,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "R2 Since",
+                    "units": "ms",
+                    "value": "%17",
+                    "widget": ""
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": false,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "R3 Since",
+                    "units": "ms",
+                    "value": "%18",
+                    "widget": ""
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": false,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "Latitude",
+                    "units": "°",
+                    "value": "%19",
+                    "widget": "lat"
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": false,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "Longitude",
+                    "units": "°",
+                    "value": "%20",
+                    "widget": "lon"
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": false,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "Altitude",
+                    "units": "m",
+                    "value": "%21",
+                    "widget": "alt"
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": false,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "Since last",
+                    "units": "s",
+                    "value": "%22",
+                    "widget": "alt"
+                }
+            ],
+            "title": "Ranging",
+            "widget": ""
+        },
+        {
+            "datasets": [
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": true,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "Inner pressure",
+                    "units": "Pa",
+                    "value": "%23",
+                    "widget": ""
+                },
+                {
+                    "alarm": 0,
+                    "fft": false,
+                    "fftSamples": 1024,
+                    "graph": true,
+                    "led": false,
+                    "log": false,
+                    "max": 0,
+                    "min": 0,
+                    "title": "Outer pressure",
+                    "units": "Pa",
+                    "value": "%24",
                     "widget": ""
                 },
                 {
@@ -125,7 +375,7 @@
                     "min": 0,
                     "title": "Inner temp",
                     "units": "°C",
-                    "value": "%16",
+                    "value": "%25",
                     "widget": ""
                 },
                 {
@@ -137,9 +387,9 @@
                     "log": false,
                     "max": 0,
                     "min": 0,
-                    "title": "Outter temp",
+                    "title": "Outer temp",
                     "units": "°C",
-                    "value": "%17",
+                    "value": "%26",
                     "widget": ""
                 },
                 {
@@ -151,9 +401,9 @@
                     "log": false,
                     "max": 255,
                     "min": 0,
-                    "title": "Heatter",
+                    "title": "Heater",
                     "units": "",
-                    "value": "%18",
+                    "value": "%27",
                     "widget": "bar"
                 }
             ],
@@ -171,51 +421,9 @@
                     "log": false,
                     "max": 0,
                     "min": 0,
-                    "title": "r_1",
-                    "units": "m",
-                    "value": "%5",
-                    "widget": ""
-                },
-                {
-                    "alarm": 0,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": false,
-                    "led": false,
-                    "log": false,
-                    "max": 0,
-                    "min": 0,
-                    "title": "r_2",
-                    "units": "m",
-                    "value": "%6",
-                    "widget": ""
-                },
-                {
-                    "alarm": 0,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": false,
-                    "led": false,
-                    "log": false,
-                    "max": 0,
-                    "min": 0,
-                    "title": "r_3",
-                    "units": "m",
-                    "value": "%7",
-                    "widget": ""
-                },
-                {
-                    "alarm": 0,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": false,
-                    "led": false,
-                    "log": false,
-                    "max": 0,
-                    "min": 0,
-                    "title": "r_1_since",
+                    "title": "Time on",
                     "units": "ms",
-                    "value": "%8",
+                    "value": "%28",
                     "widget": ""
                 },
                 {
@@ -227,182 +435,16 @@
                     "log": false,
                     "max": 0,
                     "min": 0,
-                    "title": "r_2_since",
-                    "units": "ms",
-                    "value": "%9",
-                    "widget": ""
-                },
-                {
-                    "alarm": 0,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": false,
-                    "led": false,
-                    "log": false,
-                    "max": 0,
-                    "min": 0,
-                    "title": "r_3_since",
-                    "units": "ms",
-                    "value": "%10",
-                    "widget": ""
-                }
-            ],
-            "title": "Ranging_RAW",
-            "widget": ""
-        },
-        {
-            "datasets": [
-                {
-                    "alarm": 0,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": false,
-                    "led": false,
-                    "log": false,
-                    "max": 0,
-                    "min": 0,
-                    "title": "packet_time",
-                    "units": "ms",
-                    "value": "%23",
-                    "widget": ""
-                },
-                {
-                    "alarm": 0,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": false,
-                    "led": false,
-                    "log": false,
-                    "max": 0,
-                    "min": 0,
-                    "title": "gps_since",
-                    "units": "ms",
-                    "value": "%22",
-                    "widget": ""
-                },
-                {
-                    "alarm": 0,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": true,
-                    "led": false,
-                    "log": false,
-                    "max": 0,
-                    "min": 0,
-                    "title": "gps_satts",
-                    "units": "",
-                    "value": "%4",
-                    "widget": ""
-                },
-                {
-                    "alarm": 0,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": false,
-                    "led": false,
-                    "log": false,
-                    "max": 0,
-                    "min": 0,
-                    "title": "rng_pos_since",
-                    "units": "ms",
-                    "value": "%14",
-                    "widget": ""
-                },
-                {
-                    "alarm": 8,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": false,
-                    "led": false,
-                    "log": false,
-                    "max": 8,
-                    "min": 0,
-                    "title": "batt_voltage_average",
+                    "title": "Battery voltage",
                     "units": "V",
-                    "value": "%24",
-                    "widget": "gauge"
-                },
-                {
-                    "alarm": 0,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": false,
-                    "led": false,
-                    "log": false,
-                    "max": 0,
-                    "min": 0,
-                    "title": "rssi",
-                    "units": "",
-                    "value": "%25",
-                    "widget": ""
-                },
-                {
-                    "alarm": 0,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": false,
-                    "led": false,
-                    "log": false,
-                    "max": 0,
-                    "min": 0,
-                    "title": "snr",
-                    "units": "",
-                    "value": "%26",
+                    "value": "%29",
                     "widget": ""
                 }
             ],
-            "title": "Times/Other",
+            "title": "Miscellaneous",
             "widget": ""
-        },
-        {
-            "datasets": [
-                {
-                    "alarm": 0,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": true,
-                    "led": false,
-                    "log": false,
-                    "max": 0,
-                    "min": 0,
-                    "title": "Acc X",
-                    "units": "m/s²",
-                    "value": "%19",
-                    "widget": "x"
-                },
-                {
-                    "alarm": 0,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": true,
-                    "led": false,
-                    "log": false,
-                    "max": 0,
-                    "min": 0,
-                    "title": "Acc Y",
-                    "units": "m/s²",
-                    "value": "%20",
-                    "widget": "y"
-                },
-                {
-                    "alarm": 0,
-                    "fft": false,
-                    "fftSamples": 1024,
-                    "graph": true,
-                    "led": false,
-                    "log": false,
-                    "max": 0,
-                    "min": 0,
-                    "title": "Acc Z",
-                    "units": "m/s²",
-                    "value": "%21",
-                    "widget": "z"
-                }
-            ],
-            "title": "Acc",
-            "widget": "multiplot"
         }
     ],
-    "separator": "",
+    "separator": ",",
     "title": "balllon_nano_remote(1.17)"
 }

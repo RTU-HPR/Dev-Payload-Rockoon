@@ -180,7 +180,6 @@ void Log::init(Config &config)
     if (!status)
     {
         String msg = "Configuring LoRa failed";
-        log_error_msg_to_flash(msg);
         Serial.println(msg);
     }
     _com_lora->test_transmit();
@@ -189,7 +188,7 @@ void Log::init(Config &config)
 // Sends the provided message using LoRa
 bool Log::send_com_lora(String msg)
 {
-    _com_lora->add_checksum(msg);
+    // _com_lora->add_checksum(msg);
     return _com_lora->transmit(msg);
 }
 
@@ -202,7 +201,7 @@ void Log::receive_com_lora(String &msg, float &rssi, float &snr)
         return;
     }
     
-    bool status = _com_lora->check_checksum(msg);
+    bool status = true;//_com_lora->check_checksum(msg);
     if (!status)
     {
         String error_msg = "Message checksum fail";

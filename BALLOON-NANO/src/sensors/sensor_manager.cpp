@@ -670,11 +670,11 @@ String Sensor_manager::init(Log &log, Config &config)
         }
         else
         {
-            _imu_initialized = true;
             _imu.setAccelRange(LSM6DS_ACCEL_RANGE_2_G);
             _imu.setGyroRange(LSM6DS_GYRO_RANGE_1000_DPS);
             _imu.setAccelDataRate(LSM6DS_RATE_104_HZ);
             _imu.setGyroDataRate(LSM6DS_RATE_104_HZ);
+            _imu_initialized = true;
         }
     }
     else

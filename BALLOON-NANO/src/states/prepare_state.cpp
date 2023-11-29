@@ -38,31 +38,31 @@ void reset_sensor_last_state_values(Cansat &cansat)
 bool prepare_state_loop(Cansat &cansat)
 {
     unsigned long loop_start = millis();
-    
     String incoming_msg = cansat.receive_command(cansat);
     
     // Reset watchdog timer
     watchdog_update();
     // Read sensor data
     cansat.sensors.read_data(cansat.log, cansat.config);
-    //cansat.log.transmit_data(cansat.config);
 
     // Reset watchdog timer
     watchdog_update();
 
     // Save data to telemetry file
-    // cansat.log.log_telemetry_data();
+    cansat.log.log_telemetry_data();
 
     // Reset watchdog timer
     watchdog_update();
 
     // Check if a sensor has failed and a restart is required
-    cansat.check_if_should_restart(cansat);
+    //cansat.check_if_should_restart(cansat);
     
     // Save last state variables
-    if (millis() - last_state_save_time_prepare >= cansat.config.PREPARE_STATE_SAVE_UPDATE_INTERVAL)
+    if (millis() - last_state_save_time_prepare >= 1000/*cansat.config.PREPARE_STATE_SAVE_UPDATE_INTERVAL*/)
     {
+        cansat.log.transmit_data();
         // cansat.save_last_state(cansat);
+        last_state_save_time_prepare = millis();
     }
     
     // Check received message
