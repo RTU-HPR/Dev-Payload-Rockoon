@@ -592,6 +592,9 @@ String Sensor_manager::init(Log &log, Config &config)
     if (_gps.begin(GPS_WIRE, config.GPS_ADDRESS_I2C))
     {
         _gps.setI2COutput(COM_TYPE_UBX); //Set the I2C port to output UBX only (turn off NMEA noise)
+        _gps.setMeasurementRate(500); // 2 Hz
+        _gps.setNavigationFrequency(2); //Produce two solutions per second
+        _gps.setAutoPVT(true); //Tell the GNSS to "send" each solution
 
         if (!_gps.setDynamicModel(DYN_MODEL_AIRBORNE2g) == false) // Set the dynamic model to Airborne2g
         {
