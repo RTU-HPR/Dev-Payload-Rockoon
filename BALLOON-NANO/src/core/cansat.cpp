@@ -4,6 +4,17 @@
 // Initialize SPI/I2C/PC Serial/Hardware Serial communication
 void Cansat::init_all_com_bus(Config &config)
 {
+    // Initialize PC serial
+
+    Serial.begin(config.PC_BAUDRATE);
+    if (config.WAIT_PC)
+    {
+        while (!Serial)
+        {
+            delay(500);
+        }
+    }
+
     SPI.setRX(config.SPI0_RX);
     SPI.setTX(config.SPI0_TX);
     SPI.setSCK(config.SPI0_SCK);
@@ -21,19 +32,6 @@ void Cansat::init_all_com_bus(Config &config)
     Wire1.setSCL(config.WIRE1_SCL);
     Wire1.setSDA(config.WIRE1_SDA);
     Wire1.begin();
-
-
-    // Initialize PC serial
-    /*
-    Serial.begin(config.PC_BAUDRATE);
-    if (config.WAIT_PC)
-    {
-        while (!Serial)
-        {
-            delay(500);
-        }
-    }
-    */
 }
 
 // Read last state from SD card
@@ -216,17 +214,6 @@ void Cansat::check_if_should_restart(Cansat &cansat)
 // Main function that checks and runs appropriate state
 void Cansat::start_states(Cansat &cansat)
 {
-    // FOR DEBUGGING PURPOSES
-    // IT SHOULDN'T BE HERE, IT SHOULD ONLY BE IN INIT ALL COM BUS
-    Serial.begin(config.PC_BAUDRATE);
-    if (config.WAIT_PC)
-    {
-        while (!Serial)
-        {
-            delay(100);
-        }
-    }
-
     // Initialize communications
     cansat.init_all_com_bus(cansat.config);
 
