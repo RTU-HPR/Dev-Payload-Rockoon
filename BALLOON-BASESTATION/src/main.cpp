@@ -225,7 +225,10 @@ void loop()
                 String error_msg = "Message checksum fail";
                 // Serial.println(error_msg);
             }
-            Serial.println("Message received: " + msg);
+            else
+            {
+                Serial.println("Cheksum good: " + msg);
+            }
         }
 
         if (Serial.available() > 0)

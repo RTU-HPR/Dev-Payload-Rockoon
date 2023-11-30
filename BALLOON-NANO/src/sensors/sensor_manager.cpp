@@ -16,7 +16,7 @@ void Sensor_manager::read_batt_voltage(Log &log, Config &config)
     }
     else
     {
-        log.log_error_msg_to_flash("Battery voltage reading outside range: " + String(new_batt_voltage));
+        log.send_info("Battery voltage reading outside range: " + String(new_batt_voltage));
     }
     // NO OTHER CHECKS ARE DONE AS THIS IS VERY SIMPLE AND NOTHING CAN REALLY GO WRONG (Hopefully)
 }
@@ -39,7 +39,7 @@ void Sensor_manager::read_heater_current(Log &log, Config &config)
     }
     else
     {
-        log.log_error_msg_to_flash("Heater current reading outside range: " + String(new_current));
+        log.send_info("Heater current reading outside range: " + String(new_current));
     }
     // NO OTHER CHECKS ARE DONE AS THIS IS VERY SIMPLE AND NOTHING CAN REALLY GO WRONG (Hopefully)
 }
@@ -126,7 +126,7 @@ void Sensor_manager::read_gps(Log &log)
         }
         else
         {
-            log.log_error_msg_to_flash("GPS location is not correct: " + String(new_gps_lat, 6) + " " + String(new_gps_lng, 6));
+            log.send_info("GPS location is not correct: " + String(new_gps_lat, 6) + " " + String(new_gps_lng, 6));
         }
     }
 }
@@ -147,40 +147,37 @@ void Sensor_manager::read_outer_baro(Log &log, Config &config)
         bool data_ok = true;
 
         // Try to read the sensor
-        bool result = _outer_baro.read();
+        _outer_baro.read();
 
-        if (result)
+        float new_pressure = _outer_baro.getPressure() * 100;
+        float new_temperature = _outer_baro.getTemperature();
+        // Check if values within acceptable range
+        if (config.OUTER_BARO_MIN_PRESSURE <= new_pressure && new_pressure <= config.OUTER_BARO_MAX_PRESSURE)
         {
-            float new_pressure = _outer_baro.getPressure();
-            float new_temperature = _outer_baro.getTemperature();
-            // Check if values within acceptable range
-            if (config.OUTER_BARO_MIN_PRESSURE <= new_pressure && new_pressure <= config.OUTER_BARO_MAX_PRESSURE)
-            {
-                data.outer_baro_pressure = new_pressure;
-                // Assume that temp reading is also good
-                data.outer_baro_temp = new_temperature;
-            }
-            else
-            {
-                // Later change to log_error_to_flash
-                log.log_error_msg_to_flash("Outer baro pressure reading outside range: " + String(new_pressure));
-                data_ok = false;
-            }
-            // TEMPERATURE IS NOT CHECKED AS OUTSIDE TEMP CAN BE OUTSIDE SENSOR RANGE
-            // AND THERE IS A CHANCE THAT TEMP CAN BE SIMPLY INACCURATE
+            data.outer_baro_pressure = new_pressure;
+            // Assume that temp reading is also good
+            data.outer_baro_temp = new_temperature;
         }
+        else
+        {
+            // Later change to log_error_to_flash
+            log.send_info("Outer baro pressure reading outside range: " + String(new_pressure));
+            data_ok = false;
+        }
+        // TEMPERATURE IS NOT CHECKED AS OUTSIDE TEMP CAN BE OUTSIDE SENSOR RANGE
+        // AND THERE IS A CHANCE THAT TEMP CAN BE SIMPLY INACCURATE
         // End timer, as the actual reading/processing part has ended
         reading_end = millis();
 
         // Log if sensor reading failed
-        if (!result || !data_ok)
+        if (!data_ok)
         {
             _outer_baro_consecutive_failed_readings += 1;
-            log.log_error_msg_to_flash("Reading outer baro failed. Consecutive attempt: " + String(_outer_baro_consecutive_failed_readings));
+            log.send_info("Reading outer baro failed. Consecutive attempt: " + String(_outer_baro_consecutive_failed_readings));
             if (_outer_baro_consecutive_failed_readings >= config.OUTER_BARO_MAX_ATTEMPTS)
             {
                 // Set sensor to failed
-                log.send_error("Outer baro failure detected!");
+                log.send_info("Outer baro failure detected!");
                 config.last_state_variables.outer_baro_failed = 1;
                 _outer_baro_initialized = false;
             }
@@ -189,7 +186,7 @@ void Sensor_manager::read_outer_baro(Log &log, Config &config)
         if (reading_end - reading_start >= config.OUTER_BARO_TIMEOUT)
         {
             // Set sensor to failed
-            log.send_error("Outer baro timeout detected!");
+            log.send_info("Outer baro timeout detected!");
             config.last_state_variables.outer_baro_failed = 1;
             _outer_baro_initialized = false;
         }
@@ -224,7 +221,7 @@ void Sensor_manager::read_inner_baro(Log &log, Config &config)
         else
         {
             // Later change to log_error_to_flash
-            log.send_error("Inner baro pressure reading outside range: " + String(new_pressure));
+            log.send_info("Inner baro pressure reading outside range: " + String(new_pressure));
             data_ok = false;
         }
 
@@ -238,7 +235,7 @@ void Sensor_manager::read_inner_baro(Log &log, Config &config)
         else
         {
             // Later change to log_error_to_flash
-            log.send_error("Inner baro temperature reading outside range: " + String(new_temperature));
+            log.send_info("Inner baro temperature reading outside range: " + String(new_temperature));
             data_ok = false;
         }
 
@@ -249,11 +246,11 @@ void Sensor_manager::read_inner_baro(Log &log, Config &config)
         if (!data_ok)
         {
             _inner_baro_consecutive_failed_readings += 1;
-            log.log_error_msg_to_flash("Reading inner baro failed. Consecutive attempt: " + String(_outer_baro_consecutive_failed_readings));
+            log.send_info("Reading inner baro failed. Consecutive attempt: " + String(_outer_baro_consecutive_failed_readings));
             if (_inner_baro_consecutive_failed_readings >= config.INNER_BARO_MAX_ATTEMPTS)
             {
                 // Set sensor to failed
-                log.send_error("Inner baro failure detected!");
+                log.send_info("Inner baro failure detected!");
                 config.last_state_variables.inner_baro_failed = 1;
                 _inner_baro_initialized = false;
             }
@@ -262,7 +259,7 @@ void Sensor_manager::read_inner_baro(Log &log, Config &config)
         if (reading_end - reading_start >= config.INNER_BARO_TIMEOUT)
         {
             // Set sensor to failed
-            log.send_error("Inner baro timeout detected!");
+            log.send_info("Inner baro timeout detected!");
             _inner_baro_initialized = false;
         }
     }
@@ -317,7 +314,7 @@ void Sensor_manager::read_imu(Log &log, Config &config)
         if (accel.acceleration.x == 0 && accel.acceleration.y == 0 && accel.acceleration.z == 0)
         {
             // Later change to log_error_to_flash
-            log.send_error("IMU acceleration readings are 0");
+            log.send_info("IMU acceleration readings are 0");
             data_ok = false;
         }
         else if (config.IMU_MIN_ACCELERATION <= acc_min && acc_max <= config.IMU_MAX_ACCELERATION)
@@ -329,7 +326,7 @@ void Sensor_manager::read_imu(Log &log, Config &config)
         else
         {
             // Later change to log_error_to_flash
-            log.send_error("IMU acceleration readings outside range: " + String(accel.acceleration.x) + " " + String(accel.acceleration.y) + " " + String(accel.acceleration.z));
+            log.send_info("IMU acceleration readings outside range: " + String(accel.acceleration.x) + " " + String(accel.acceleration.y) + " " + String(accel.acceleration.z));
             data_ok = false;
         }
 
@@ -339,7 +336,7 @@ void Sensor_manager::read_imu(Log &log, Config &config)
         if (gyro.gyro.x == 0 && gyro.gyro.y == 0 && gyro.gyro.z == 0)
         {
             // Later change to log_error_to_flash
-            log.send_error("IMU gyro readings are 0");
+            log.send_info("IMU gyro readings are 0");
             data_ok = false;
         }
         else if (config.IMU_MIN_ROTATION <= gyro_min && gyro_max <= config.IMU_MAX_ROTATION)
@@ -351,7 +348,7 @@ void Sensor_manager::read_imu(Log &log, Config &config)
         else
         {
             // Later change to log_error_to_flash
-            log.send_error("IMU gyro readings outside range: " + String(gyro.gyro.x) + " " + String(gyro.gyro.y) + " " + String(gyro.gyro.z));
+            log.send_info("IMU gyro readings outside range: " + String(gyro.gyro.x) + " " + String(gyro.gyro.y) + " " + String(gyro.gyro.z));
             data_ok = false;
         }
 
@@ -359,17 +356,17 @@ void Sensor_manager::read_imu(Log &log, Config &config)
         if (!data_ok)
         {
             _imu_consecutive_failed_readings += 1;
-            log.log_error_msg_to_flash("Reading IMU failed. Consecutive attempt: " + String(_imu_consecutive_failed_readings));
+            log.send_info("Reading IMU failed. Consecutive attempt: " + String(_imu_consecutive_failed_readings));
             if (_imu_consecutive_failed_readings >= config.IMU_MAX_ATTEMPTS)
             {
-                log.send_error("IMU failure detected!");
+                log.send_info("IMU failure detected!");
                 _imu_initialized = false;
             }
         }
         // If the actual reading of the sensor took too long, something is probably wrong with it
         if (reading_end - reading_start >= config.IMU_TIMEOUT)
         {
-            log.send_error("IMU timeout detected!");
+            log.send_info("IMU timeout detected!");
             _imu_initialized = false;
         }
 
@@ -411,7 +408,7 @@ void Sensor_manager::read_inner_temp_probe(Log &log, Config &config)
         else
         {
             // Later change to log_error_to_flash
-            log.send_error("Inner probe temp reading outside range: " + String(new_temperature));
+            log.send_info("Inner probe temp reading outside range: " + String(new_temperature));
             data_ok = false;
         }
 
@@ -419,10 +416,10 @@ void Sensor_manager::read_inner_temp_probe(Log &log, Config &config)
         if (!data_ok)
         {
             _inner_temp_probe_consecutive_failed_readings += 1;
-            log.log_error_msg_to_flash("Reading inner probe failed. Consecutive attempt: " + String(_inner_temp_probe_consecutive_failed_readings));
+            log.send_info("Reading inner probe failed. Consecutive attempt: " + String(_inner_temp_probe_consecutive_failed_readings));
             if (_inner_temp_probe_consecutive_failed_readings >= config.INNER_TEMP_PROBE_MAX_ATTEMPTS)
             {
-                log.send_error("Inner temp probe failure detected!");
+                log.send_info("Inner temp probe failure detected!");
                 _inner_temp_probe_initialized = false;
             }
         }
@@ -430,7 +427,7 @@ void Sensor_manager::read_inner_temp_probe(Log &log, Config &config)
         // If the actual reading of the sensor took too long, something is probably wrong with it
         if (reading_end - reading_start >= config.INNER_TEMP_PROBE_TIMEOUT)
         {
-            log.send_error("Inner temp probe timeout detected!");
+            log.send_info("Inner temp probe timeout detected!");
             _inner_temp_probe_initialized = false;
         }
 
@@ -472,7 +469,7 @@ void Sensor_manager::read_outer_thermistor(Log &log, Config &config)
         else
         {
             // Later change to log_error_to_flash
-            log.send_error("Outer thermistor reading outside range: " + String(new_temperature));
+            log.send_info("Outer thermistor reading outside range: " + String(new_temperature));
             data_ok = false;
         }
 
@@ -480,11 +477,11 @@ void Sensor_manager::read_outer_thermistor(Log &log, Config &config)
         if (!data_ok)
         {
             _outer_thermistor_consecutive_failed_readings += 1;
-            log.log_error_msg_to_flash("Reading outer thermistor failed. Consecutive attempt: " + String(_outer_thermistor_consecutive_failed_readings));
+            log.send_info("Reading outer thermistor failed. Consecutive attempt: " + String(_outer_thermistor_consecutive_failed_readings));
             if (_outer_thermistor_consecutive_failed_readings >= config.INNER_TEMP_PROBE_MAX_ATTEMPTS)
             {
                 // Set sensor to failed
-                log.send_error("Outer thermistor failure detected!");
+                log.send_info("Outer thermistor failure detected!");
                 config.last_state_variables.outer_thermistor_failed = 1;
                 _outer_thermistor_initialized = false;
             }
@@ -494,7 +491,7 @@ void Sensor_manager::read_outer_thermistor(Log &log, Config &config)
         if (reading_end - reading_start >= config.OUTER_BARO_TIMEOUT)
         {
             // Set sensor to failed
-            log.send_error("Outer thermistor timeout detected!");
+            log.send_info("Outer thermistor timeout detected!");
             config.last_state_variables.outer_thermistor_failed = 1;
             _outer_thermistor_initialized = false;
         }
@@ -524,7 +521,7 @@ void Sensor_manager::update_heater(Log &log, Config &config)
                 else
                 {
                     best_inner_temp = min(data.average_inner_temp, data.average_inner_temp_baro);
-                    log.log_info_msg_to_flash("Difference between inner temp sensors larger than 5: " + String(data.average_inner_temp) + " " + String(data.average_inner_temp_baro));
+                    log.send_info("Difference between inner temp sensors larger than 5: " + String(data.average_inner_temp) + " " + String(data.average_inner_temp_baro));
                 }
             }
             // If only inner temp probe is working
@@ -579,6 +576,37 @@ void Sensor_manager::update_heater(Log &log, Config &config)
 // PUBLIC FUNCTIONS
 String Sensor_manager::init(Log &log, Config &config)
 {
+    Wire.setSCL(1);
+    Wire.setSDA(0);
+    // Wire.setClock(400000);
+    Wire.begin();
+    // GPS
+    if (_gps.begin(Wire, 0x42) == true)
+    {
+
+        _gps.setI2COutput(COM_TYPE_UBX); // Set the I2C port to output UBX only (turn off NMEA noise)
+        _gps.setMeasurementRate(1000);   // 2 Hz
+        _gps.setNavigationFrequency(1);  // Produce two solutions per second
+        _gps.setAutoPVT(true);           // Tell the GNSS to "send" each solution
+
+        if (!_gps.setDynamicModel(DYN_MODEL_AIRBORNE2g)) // Set the dynamic model to Airborne2g
+        {
+            log.send_info("GPS Dynamic model setting error");
+            // status += "GPS dynamic model error ";
+        }
+        else
+        {
+            _gps_initialized = true;
+        }
+    }
+    else
+    {
+        // log.send_info("GPS init error");
+        log.send_info("GPS init error");
+        // status += "GPS error ";
+    }
+    Serial.println("GPS done");
+
     String status;
 
     // Change analogRead resolution
@@ -588,32 +616,79 @@ String Sensor_manager::init(Log &log, Config &config)
     pinMode(config.SENSOR_POWER_ENABLE_PIN, OUTPUT_12MA);
     digitalWrite(config.SENSOR_POWER_ENABLE_PIN, HIGH);
 
-    // GPS
-    if (_gps.begin(GPS_WIRE, config.GPS_ADDRESS_I2C))
-    {
-        _gps.setI2COutput(COM_TYPE_UBX); // Set the I2C port to output UBX only (turn off NMEA noise)
-        _gps.setMeasurementRate(500);    // 2 Hz
-        _gps.setNavigationFrequency(2);  // Produce two solutions per second
-        _gps.setAutoPVT(true);           // Tell the GNSS to "send" each solution
+    byte error, address;
+    int nDevices;
 
-        if (!_gps.setDynamicModel(DYN_MODEL_AIRBORNE2g) == false) // Set the dynamic model to Airborne2g
-        {
-            log.log_error_msg_to_flash("GPS Dynamic model setting error");
-            status += "GPS dynamic model error ";
-        }
-        else
-        {
-            _gps_initialized = true;
-        }
-    }
-    else
-    {
-        log.log_error_msg_to_flash("GPS init error");
-        status += "GPS error ";
-    }
+    // Serial.println("Scanning Wire ...");
+
+    // nDevices = 0;
+    // for(address = 1; address < 127; address++ )
+    // {
+    // // The i2c_scanner uses the return value of
+    // // the Write.endTransmisstion to see if
+    // // a device did acknowledge to the address.
+    // Wire.beginTransmission(address);
+    // error = Wire.endTransmission();
+
+    // if (error == 0)
+    // {
+    //     Serial.print("I2C device found at address 0x");
+    //     if (address<16)
+    //     Serial.print("0");
+    //     Serial.print(address,HEX);
+    //     Serial.println("  !");
+
+    //     nDevices++;
+    // }
+    // else if (error==4)
+    // {
+    //     Serial.print("Unknown error at address 0x");
+    //     if (address<16)
+    //     Serial.print("0");
+    //     Serial.println(address,HEX);
+    // }
+    // }
+    // if (nDevices == 0)
+    // Serial.println("No I2C devices found\n");
+    // else
+    // Serial.println("done\n");
+
+    // Serial.println("Scanning Wire1..");
+
+    // nDevices = 0;
+    // for(address = 1; address < 127; address++ )
+    // {
+    // // The i2c_scanner uses the return value of
+    // // the Write.endTransmisstion to see if
+    // // a device did acknowledge to the address.
+    // Wire1.beginTransmission(address);
+    // error = Wire1.endTransmission();
+
+    // if (error == 0)
+    // {
+    //     Serial.print("I2C device found at address 0x");
+    //     if (address<16)
+    //     Serial.print("0");
+    //     Serial.print(address,HEX);
+    //     Serial.println("  !");
+
+    //     nDevices++;
+    // }
+    // else if (error==4)
+    // {
+    //     Serial.print("Unknown error at address 0x");
+    //     if (address<16)
+    //     Serial.print("0");
+    //     Serial.println(address,HEX);
+    // }
+    // }
+    // if (nDevices == 0)
+    // Serial.println("No I2C devices found\n");
+    // else
+    // Serial.println("done\n");
 
     // Port extender
-    _port_extender = new PCF8575(config.PORT_EXTENDER_WIRE, config.PORT_EXTENDER_ADDRESS_I2C);
+    _port_extender = new PCF8575(&Wire1, 0x20);
     _port_extender->pinMode(config.PORT_EXTENDER_BUZZER_PIN, OUTPUT);
     _port_extender->pinMode(config.PORT_EXTENDER_LED_2_PIN, OUTPUT);
     _port_extender->pinMode(config.PORT_EXTENDER_LED_1_PIN, OUTPUT);
@@ -624,10 +699,10 @@ String Sensor_manager::init(Log &log, Config &config)
     // Outer baro
     if (!config.last_state_variables.outer_baro_failed)
     {
-        _outer_baro = MS5611(config.MS5611_ADDRESS_I2C);
-        if (!_outer_baro.begin(config.MS5611_WIRE))
+        _outer_baro = MS5611(0x76);
+        if (!_outer_baro.begin(&Wire1))
         {
-            log.log_error_msg_to_flash("MS5611 init error");
+            log.send_info("MS5611 init error");
             status += "MS5611 error ";
         }
         else
@@ -638,17 +713,18 @@ String Sensor_manager::init(Log &log, Config &config)
     }
     else
     {
-        log.send_error("MS5611 state is set as failed. Sensor not initalized");
+        log.send_info("MS5611 state is set as failed. Sensor not initalized");
     }
+    Serial.println("MS5611 done");
 
     // Inner baro
     if (!config.last_state_variables.inner_baro_failed)
     {
-        _inner_baro = Adafruit_BMP280(config.BMP280_WIRE);
-        if (!_inner_baro.begin(config.BMP280_ADDRESS_I2C))
+        _inner_baro = Adafruit_BMP085();
+        if (!_inner_baro.begin(config.BMP180_ADDRESS_I2C, &Wire1))
         {
-            log.log_error_msg_to_flash("BMP280 init error");
-            status += "BMP280 error ";
+            log.send_info("BMP180 init error");
+            status += "BMP180 error ";
         }
         else
         {
@@ -657,15 +733,16 @@ String Sensor_manager::init(Log &log, Config &config)
     }
     else
     {
-        log.send_error("BMP280 state is set as failed. Sensor not initalized");
+        log.send_info("BMP280 state is set as failed. Sensor not initalized");
     }
+    Serial.println("BMP180 done");
 
     // IMU WIRE1
     if (!config.last_state_variables.imu_failed)
     {
-        if (!_imu.begin_I2C(config.IMU_ADDRESS_I2C, config.IMU_WIRE))
+        if (_imu.begin_I2C(0x6B, &Wire1))
         {
-            log.log_error_msg_to_flash("IMU init error");
+            log.send_info("IMU init error");
             status += "IMU error ";
         }
         else
@@ -679,14 +756,15 @@ String Sensor_manager::init(Log &log, Config &config)
     }
     else
     {
-        log.send_error("IMU state is set as failed. Sensor not initalized");
+        log.send_info("IMU state is set as failed. Sensor not initalized");
     }
-
+    Serial.println("IMU done");
+    /*
     // TEMP PROBE
     if (!config.last_state_variables.inner_temp_probe_failed)
     {
-        _inner_temp_probe = ClosedCube::Sensor::STS35(config.IMU_WIRE);
-        _inner_temp_probe.address(config.STS35_ADDRESS_I2C);
+        _inner_temp_probe = ClosedCube::Sensor::STS35(&Wire1);
+        _inner_temp_probe.address(0x4B);
         _inner_temp_probe_initialized = true;
 
         // Test temp probe to see if its working
@@ -694,15 +772,16 @@ String Sensor_manager::init(Log &log, Config &config)
         if (test > 100.00 || test < -100.0 || test == 0.00)
         {
             _inner_temp_probe_initialized = false;
-            log.log_error_msg_to_flash("Inner temp probe init error");
+            log.send_info("Inner temp probe init error");
             status += "Inner temp probe error";
         }
     }
     else
     {
-        log.send_error("Inner temp probe state is set as failed. Sensor not initalized");
+        log.send_info("Inner temp probe state is set as failed. Sensor not initalized");
     }
-
+    Serial.println("STS35 done");
+    */
     // Outer temp probe
     if (!config.last_state_variables.outer_thermistor_failed)
     {
@@ -711,8 +790,9 @@ String Sensor_manager::init(Log &log, Config &config)
     }
     else
     {
-        log.send_error("Outer_thermistor state is set as failed. Sensor not initalized");
+        log.send_info("Outer_thermistor state is set as failed. Sensor not initalized");
     }
+    Serial.print("Thermistor done");
 
     // TEMP CALCULATOR
     _temp_manager = new Temperature_Manager(config.HEATER_MOSFET, config.DESIRED_HEATER_TEMP);
@@ -809,6 +889,8 @@ void Sensor_manager::read_data(Log &log, Config &config)
     read_ranging(log, config);
     position_calculation(log, config);
     read_time();
+
+    get_data_packets(sendable_packet, loggable_packet);
 }
 void Sensor_manager::get_data_packets(String &sendable_packet, String &loggable_packet)
 {
@@ -819,7 +901,7 @@ void Sensor_manager::update_data_packet(Sensor_data &data, String &result_sent, 
 {
     String packet;
     // GPS
-    packet += String(data.gps_epoch_time, 0); // 1
+    packet += String(data.gps_epoch_time); // 1
     packet += ",";
     packet += String(data.gps_lat, 6); // 2
     packet += ",";
@@ -871,9 +953,9 @@ void Sensor_manager::update_data_packet(Sensor_data &data, String &result_sent, 
     packet += ",";
 
     // Baro
-    packet += String(data.inner_baro_pressure, 0); // 23
+    packet += String(data.inner_baro_pressure); // 23
     packet += ",";
-    packet += String(data.outer_baro_pressure, 0); // 24
+    packet += String(data.outer_baro_pressure); // 24
     packet += ",";
 
     // Temperatures
@@ -887,7 +969,6 @@ void Sensor_manager::update_data_packet(Sensor_data &data, String &result_sent, 
     packet += ",";
 
     // Misc
-    packet += ",";
     packet += String(data.time); // 28
     packet += ",";
     packet += String(data.average_batt_voltage, 2); // 29

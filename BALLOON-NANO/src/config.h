@@ -139,8 +139,8 @@ public:
 
     // I2C addresses
     const int PORT_EXTENDER_ADDRESS_I2C = 0x20;
-    const int MS5611_ADDRESS_I2C = 0x77;
-    const int BMP280_ADDRESS_I2C = 0x76; // or 0x76 :D
+    const int MS5611_ADDRESS_I2C = 0x76;
+    const int BMP180_ADDRESS_I2C = 0x77; // or 0x76 :D
     const int IMU_ADDRESS_I2C = 0x6B;  // or 0x6A
     const int STS35_ADDRESS_I2C = 0x4B; // I2C Address: either 0x4A or 0x04B
     const int GPS_ADDRESS_I2C = 0x42;

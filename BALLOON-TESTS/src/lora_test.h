@@ -66,7 +66,7 @@
 int _MOSI = 7;
 int _MISO = 4;
 int _SCK = 6;
-bool transmit = false; // sets the module in transmitting or receiving state
+bool transmit = true; // sets the module in transmitting or receiving state
 #define radio_module SX1268
 RadioLib_Wrapper<radio_module>::RADIO_CONFIG com_config{
     .FREQUENCY = 434.5,
@@ -112,18 +112,18 @@ void start()
         if (transmit)
         {
             // transmit
-            String msg = "Hello World";
-            _com_lora->add_checksum(msg);
+            String msg = "Hello Worlyhgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggd";
+            //_com_lora->add_checksum(msg);
             bool sent_status = _com_lora->transmit(msg);
             if (sent_status)
             {
                 Serial.println("MSG sent");
+                transmit = false;
             }
             else
             {
                 // Serial.println("Msg not sent");
             }
-            transmit = false;
             //delay(1000);
         }
         else
@@ -135,17 +135,9 @@ void start()
             bool received_status = _com_lora->receive(msg, rssi, snr);
             if (received_status)
             {
+                Serial.println(msg);
                 transmit = true;
-                delay(100);
-                Serial.println("Message received RAW MSG: " + msg + "  RSSI: " + String(rssi) + "   SNR: " + String(snr));
-                if (_com_lora->check_checksum(msg))
-                {
-                    Serial.println("Check sum good: " + msg);
-                }
-                else
-                {
-                    Serial.println("Check sum BAD: " + msg);
-                }
+                delay(50);
             }
         }
     }

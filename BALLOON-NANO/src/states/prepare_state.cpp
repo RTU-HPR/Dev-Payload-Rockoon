@@ -49,7 +49,7 @@ bool prepare_state_loop(Cansat &cansat)
     watchdog_update();
 
     // Save data to telemetry file
-    cansat.log.log_telemetry_data();
+    //cansat.log.send_data(cansat.sensors.sendable_packet, cansat.sensors.loggable_packet, false, true, true);
 
     // Reset watchdog timer
     watchdog_update();
@@ -60,7 +60,8 @@ bool prepare_state_loop(Cansat &cansat)
     // Save last state variables
     if (millis() - last_state_save_time_prepare >= 1000/*cansat.config.PREPARE_STATE_SAVE_UPDATE_INTERVAL*/)
     {
-        cansat.log.transmit_data();
+        //Serial.println("Sending data");
+        //cansat.log.send_data(cansat.sensors.sendable_packet, cansat.sensors.loggable_packet, true, false, true);
         // cansat.save_last_state(cansat);
         last_state_save_time_prepare = millis();
     }
@@ -96,7 +97,7 @@ bool prepare_state_loop(Cansat &cansat)
             // Save data to telemetry file
             //cansat.log.log_telemetry_data();
             // Send data by LoRa
-            cansat.log.transmit_data();
+            cansat.log.send_data(cansat.sensors.sendable_packet, cansat.sensors.loggable_packet, true, true, true);
             
             // Reset watchdog timer
             watchdog_update();
@@ -166,6 +167,15 @@ bool prepare_state_loop(Cansat &cansat)
 // Prepare state setup
 void prepare_state(Cansat &cansat)
 {    
+    // DONT TOUCH THIS DELAY
+    // PLEASE PLEASE DONT
+    // VERY IMPORTANT
+    // LORA NO WORK WITHOUT IT
+    // DONT ASK WHY
+    // vvvvvvvv
+    delay(1000);
+    //cansat.log.send_info("INSIDE PREPARE STATE");
+    //delay(1000);
     // Reset watchdog timer
     watchdog_update();
 
@@ -175,7 +185,7 @@ void prepare_state(Cansat &cansat)
     // Reset watchdog timer
     watchdog_update();
 
-    cansat.log.send_info(status);
+    //cansat.log.send_info(status);
 
     cansat.log.send_info("Init done, waiting for arm");
 

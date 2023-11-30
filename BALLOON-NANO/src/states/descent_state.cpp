@@ -14,16 +14,11 @@ unsigned long mosfet_turnoff_time;
 // HELPER FUNCTIONS
 void send_data_descent(Cansat &cansat)
 {
-    // Print data to serial
-    cansat.log.log_telemetry_data_to_pc();
-    // Save data to telemetry file
-    cansat.log.log_telemetry_data();
-
     // Check if data should be sent over LoRa
     if (millis() - last_data_transmit_time_descent >= cansat.config.LORA_DATAPACKET_COOLDOWN_DESCENT)
     {
         // Send data by LoRa
-        cansat.log.transmit_data();
+        cansat.log.send_data(cansat.sensors.sendable_packet, cansat.sensors.loggable_packet, true, false, false);
         last_data_transmit_time_descent = millis();
     }
 }
@@ -80,6 +75,8 @@ bool descent_state_loop(Cansat &cansat)
     // Send sensor data
     send_data_descent(cansat);
 
+    cansat.log.send_data(cansat.sensors.sendable_packet, cansat.sensors.loggable_packet, false, true, true);
+
     // Reset watchdog timer
     watchdog_update();
 
@@ -107,6 +104,13 @@ bool descent_state_loop(Cansat &cansat)
 // Descent state setup
 void descent_state(Cansat &cansat)
 {
+    // DONT TOUCH THIS DELAY
+    // PLEASE PLEASE DONT
+    // VERY IMPORTANT
+    // LORA NO WORK WITHOUT IT
+    // DONT ASK WHY
+    // vvvvvvvv
+    delay(1000);
     state_start_time = millis();
  
     // If payload has recovered to descent state
