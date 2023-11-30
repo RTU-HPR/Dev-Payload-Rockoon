@@ -66,7 +66,7 @@ Ranging_Wrapper::Lora_Device ranging_device = {.FREQUENCY = 2405.6,
 const int buzzer_pin = 3;
 const int buzz_length = 200;
 bool master_basestation = true;
-bool transmiting_mode = true;
+bool transmiting_mode = false;
 
 void read_main_lora()
 {
@@ -84,9 +84,9 @@ void read_main_lora()
     if (!status)
     {
         String error_msg = "Message checksum fail";
-        Serial.println(error_msg);
+        // Serial.println(error_msg);
     }
-    Serial.println("Message received: " + msg);
+    // Serial.println("Message received: " + msg);
 
     if (msg.charAt(0) == '!')
     {
@@ -164,14 +164,12 @@ void setup()
 
 void loop()
 {
-
     if (transmiting_mode)
     {
-        send_main_lora("AHHHHH");
-        transmiting_mode = false;
-        /*
+        Serial.println("Transmit");
         if (Serial.available() > 0)
-        {
+        {   
+            Serial.println("Listening to serial transmit");
             String incoming_msg = Serial.readString();
             if (incoming_msg != "")
             {
@@ -211,19 +209,28 @@ void loop()
                 }
             }
         }
-        */
     }
     else
     {
-        read_main_lora();
-        if (incoming_msg != "")
+        String msg = "";
+        float rssi;
+        float snr;
+
+        // Get data from LoRa
+        if (com_lora->receive(msg, rssi, snr))
         {
-              
-        } 
-        /*
+            bool status = com_lora->check_checksum(msg);
+            if (!status)
+            {
+                String error_msg = "Message checksum fail";
+                // Serial.println(error_msg);
+            }
+            Serial.println("Message received: " + msg);
+        }
 
         if (Serial.available() > 0)
         {
+            Serial.println("Listening to serial transmit");
             String incoming_msg = Serial.readString();
             if (incoming_msg != "")
             {
@@ -239,20 +246,6 @@ void loop()
                     Serial.println("Unexpected input : " + incoming_msg);
                 }
             }
-        }
-        */
-    }
-
-    /// enable raning slave
-    if (ranging_lora.get_init_status())
-    {
-        bool result = ranging_lora.slave_reenable(10000, RANGING_SLAVE);
-        if (result == true)
-        {
-            Serial.println("ranging ping recieved");
-            pinMode(buzzer_pin, OUTPUT_12MA);
-            // digitalWrite(buzzer_pin, HIGH);
-            tone(buzzer_pin, 1000, 250);
         }
     }
 }
