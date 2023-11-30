@@ -30,9 +30,14 @@ public:
     bool format_storage(Config &config);
     void init_flash_files(Config &config);
 
-    void send_info(String msg);
-    void send_error(String msg);
-    void send_data(String sendable_packet, String loggable_packet, bool lora = true, bool flash = true, bool pc = true);
+    void send_info(String msg); // logs to info file and sends msg over lora
+    void send_info(String msg, bool log_to_lora, bool log_to_flash, bool log_to_pc);
+
+    void send_error(String msg); // logs to error file and sends msg over lora
+    void send_error(String msg, bool log_to_lora, bool log_to_flash, bool log_to_pc);
+
+    void send_data(String sendable_packet, String loggable_packet);
+    void send_data(String sendable_packet, String loggable_packet, bool log_to_lora, bool log_to_flash, bool log_to_pc);
 
     void receive_com_lora(String &msg, float &rssi, float &snr);
 };

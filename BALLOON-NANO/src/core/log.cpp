@@ -33,16 +33,28 @@ void Log::init_flash(Config &config)
 
     init_flash_files(config);
 }
+
 void Log::init_com_lora(Config &config)
 {
     _com_lora = new RadioLib_Wrapper<radio_module>(config.com_config);
 
+<<<<<<< HEAD
+=======
+    // Convert the lambda function to a function pointer and pass it to set_error_output_function
+    // to implement this read this: https://stackoverflow.com/questions/45386009/assign-function-pointer-inside-class
+    //_com_lora->set_error_output_function(send_error);
+
+>>>>>>> 704cc1ccddd66fd41ef68aa91ad572443cd57807
     if (!_com_lora->configure_radio(config.com_config))
     {
         Serial.println("Configuring LoRa failed");
         return;
     }
+<<<<<<< HEAD
     // _com_lora->test_transmit();
+=======
+    _com_lora->test_transmit();
+>>>>>>> 704cc1ccddd66fd41ef68aa91ad572443cd57807
     send_info("Lora init success");
 }
 
@@ -64,7 +76,11 @@ void Log::write_to_file(String msg, String file_name)
     }
 }
 // Sends the provided message using LoRa
+<<<<<<< HEAD
 bool Log::send_com_lora(String msg, bool retry_till_sent)
+=======
+bool Log::send_com_lora((String msg, bool retry_till_sent = false)
+>>>>>>> 704cc1ccddd66fd41ef68aa91ad572443cd57807
 {
     //Serial.println("Before checksum: " + String(msg));
     _com_lora->add_checksum(msg);
@@ -78,7 +94,11 @@ bool Log::send_com_lora(String msg, bool retry_till_sent)
         while (!_com_lora->transmit(msg) && !timeout)
         {
             delay(5);
+<<<<<<< HEAD
             if (millis() > start_time + 1000)
+=======
+            if (millis() > start_time + 2000)
+>>>>>>> 704cc1ccddd66fd41ef68aa91ad572443cd57807
             {
                 timeout = true;
             }
@@ -191,18 +211,28 @@ void Log::receive_com_lora(String &msg, float &rssi, float &snr)
 // Sends a message over LoRa and logs the message to the info file
 void Log::send_info(String msg)
 {
-    // Prints message to serial
-    Serial.println("! " + msg);
-
-    if (!send_com_lora(msg, true))
+    send_info(msg, true, true, true);
+}
+void Log::send_info(String msg, bool log_to_lora, bool log_to_flash, bool log_to_pc)
+{
+    if (log_to_pc)
     {
-        // failed sending lora msg mybe error
+        // Prints message to serial
+        Serial.println("! " + msg);
     }
-    // Log data to info file
-    msg = String(millis()) + "," + msg;
-    //Serial.println(msg);
-    //Serial.println("Problem in send info");
-    //write_to_file(msg, _info_log_file_path_final);
+    if (log_to_lora)
+    {
+        if (!send_com_lora(msg, true))
+        {
+            // failed sending lora msg mybe error
+        }
+    }
+    if (log_to_flash)
+    {
+        // Log data to info file
+        msg = String(millis()) + "," + msg;
+        write_to_file(msg, _info_log_file_path_final);
+    }
 }
 
 // Sends a message over LoRa and logs the message to the error file
@@ -215,25 +245,45 @@ void Log::send_error(String msg)
     {
         // failed sending lora msg mybe error
     }
-
-    // Log data to error file
-    msg = String(millis()) + "," + msg;
-    //Serial.println(msg);
-    //Serial.println("Problem in send error");
-    //write_to_file(msg, _error_log_file_path_final);
 }
 
 void Log::send_data(String sendable_packet, String loggable_packet, bool lora, bool flash, bool pc)
 {
-    if (lora)
+    if (log_to_pc)
+    {
+        // Prints message to serial
+        Serial.println("!!! " + msg);
+    }
+    if (log_to_lora)
+    {
+        if (!send_com_lora(msg, true))
+        {
+            // failed sending lora msg mybe error
+        }
+    }
+    if (log_to_flash)
+    {
+        // Log data to info file
+        msg = String(millis()) + "," + msg;
+        write_to_file(msg, _error_log_file_path_final);
+    }
+}
+
+void Log::send_data(String sendable_packet, String loggable_packet)
+{
+    send_data(sendable_packet, loggable_packet, true, true, true);
+}
+void Log::send_data(String sendable_packet, String loggable_packet, bool log_to_lora, bool log_to_flash, bool log_to_pc)
+{
+    if (log_to_lora)
     {
         send_com_lora(sendable_packet);
     }
-    if (flash)
+    if (log_to_flash)
     {
         write_to_file(loggable_packet, _telemetry_log_file_path_final);
     }
-    if (pc)
+    if (log_to_pc)
     {
         Serial.print("/*");
         Serial.print(loggable_packet);
