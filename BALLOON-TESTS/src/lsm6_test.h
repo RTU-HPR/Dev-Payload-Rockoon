@@ -11,8 +11,8 @@ int imu_address = 0x6B;
 
 void start()
 {
-    _WIRE->setSCL(15);
-    _WIRE->setSDA(14);
+    //_WIRE->setSCL(15);
+    //_WIRE->setSDA(14);
     Adafruit_LSM6DS _imu;
 
     if (!_imu.begin_I2C(imu_address, _WIRE))

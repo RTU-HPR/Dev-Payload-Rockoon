@@ -6,20 +6,14 @@ unsigned long int last_state_save_time_ascent = 0;
 // HELPER FUNCTIONS
 void send_data_ascent(Cansat &cansat)
 {
-    // Print data to serial
-    cansat.log.log_telemetry_data_to_pc();
-    // Save data to telemetry file
-    cansat.log.log_telemetry_data();
-
     // Check if data should be sent over LoRa
     if (millis() - last_data_transmit_time_ascent >= cansat.config.LORA_DATAPACKET_COOLDOWN_ASCENT)
     {
         // Send data by LoRa
-        cansat.log.transmit_data(cansat.config);
+        cansat.log.send_data(cansat.sensors.sendable_packet, cansat.sensors.loggable_packet, true, false, false);
         last_data_transmit_time_ascent = millis();
     }
 }
-
 
 // MAIN FUNCTIONS
 // Ascent state loop
@@ -44,7 +38,7 @@ bool ascent_state_loop(Cansat &cansat)
     // FOR TESTING PURPOSES
     if (incoming_msg == "set_descent")
     {
-        cansat.log.send_info("DESCENT state activated manually", cansat.config);
+        cansat.log.send_info("DESCENT state activated manually");
         return true;
     }
 
@@ -53,6 +47,8 @@ bool ascent_state_loop(Cansat &cansat)
 
     // Reset watchdog timer
     watchdog_update();
+
+    cansat.log.send_data(cansat.sensors.sendable_packet, cansat.sensors.loggable_packet, false, true, true);
 
     // Log/Send data
     send_data_ascent(cansat);
@@ -80,7 +76,7 @@ bool ascent_state_loop(Cansat &cansat)
         launch_rail_removed_cycle_count++;
         if (launch_rail_removed_cycle_count >= 10)
         {
-            cansat.log.send_info("Launch rail removed", cansat.config);
+            cansat.log.send_info("Launch rail removed");
             return true;
         }
     }
@@ -101,6 +97,14 @@ bool ascent_state_loop(Cansat &cansat)
 // Ascent state setup
 void ascent_state(Cansat &cansat)
 {
+    // DONT TOUCH THIS DELAY
+    // PLEASE PLEASE DONT
+    // VERY IMPORTANT
+    // LORA NO WORK WITHOUT IT
+    // DONT ASK WHY
+    // vvvvvvvv
+    delay(1000);
+    
     pinMode(cansat.config.PARACHUTE_MOSFET_1, OUTPUT_12MA);
     pinMode(cansat.config.PARACHUTE_MOSFET_2, OUTPUT_12MA);
 
@@ -115,8 +119,8 @@ void ascent_state(Cansat &cansat)
         // Reset watchdog timer
         watchdog_update();
 
-        cansat.log.send_info(status, cansat.config);
-        cansat.log.send_info("Reset done", cansat.config);
+        cansat.log.send_info(status);
+        cansat.log.send_info("Reset done");
     }
 
     // Reset watchdog timer

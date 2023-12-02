@@ -66,8 +66,14 @@ COM_CONFIG com_config;
 int _MOSI = 7;
 int _MISO = 4;
 int _SCK = 6;
+volatile bool action_done = true;
 bool transmit = true; // sets the module in transmitting or receiving state
 #define radio_module SX1268
+
+void set_action_done_flag(void)
+{
+    action_done = true;
+}
 
 void start()
 {
@@ -101,6 +107,7 @@ void start()
     // setup rf/tx switching
     radio.setDio2AsRfSwitch(true);
 
+    radio.setPacketReceivedAction(set_action_done_flag);
     // enable RxBoostedGain mode which will improve the recievers sensitivity at the cost of power consumption
     // test this when everything else works
     if (int status_rxboost = radio.setRxBoostedGainMode(true, true) == RADIOLIB_ERR_NONE)
@@ -125,14 +132,15 @@ void start()
     int count = 0;
     while (true)
     {
-        if (transmit)
+        if (transmit  && action_done)
         {
             Serial.print(F("[SX1262] Transmitting packet ... "));
 
             // you can transmit C-string or Arduino string up to
             // 256 characters long
-            String str = "Hello World! #" + String(count++);
-            int state = radio.transmit(str);
+            action_done = false;
+            String str = "Hello Worhhghjgvgnhgagdgdhfgudggggggggggggggggggggggggggggggggggggggggggggggggggggsdhgyuwgyduagfyudguvgwygfvtwgftygvtjwgyjgvyuwyujwgjwrgyuwrvwyvgyujwgyvgwyjgvyujwgygvyuld! #" + String(count++);
+            int state = radio.startTransmit(str);
 
             if (state == RADIOLIB_ERR_NONE)
             {
@@ -164,58 +172,58 @@ void start()
             // wait for a second before transmitting again
             delay(1000);
         }
-        else
-        {
-            Serial.print(F("[SX1262] Waiting for incoming transmission ... "));
+        // else
+        // {
+        //     Serial.print(F("[SX1262] Waiting for incoming transmission ... "));
 
-            // you can receive data as an Arduino String
-            String str;
-            int state = radio.receive(str);
-            if (str != "")
-            {
-                if (state == RADIOLIB_ERR_NONE)
-                {
-                    // packet was successfully received
-                    Serial.println(F("success!"));
+        //     // you can receive data as an Arduino String
+        //     String str;
+        //     int state = radio.receive(str);
+        //     if (str != "")
+        //     {
+        //         if (state == RADIOLIB_ERR_NONE)
+        //         {
+        //             // packet was successfully received
+        //             Serial.println(F("success!"));
 
-                    // print the data of the packet
-                    Serial.print(F("[SX1262] Data:\t\t"));
-                    Serial.println(str);
+        //             // print the data of the packet
+        //             Serial.print(F("[SX1262] Data:\t\t"));
+        //             Serial.println(str);
 
-                    // print the RSSI (Received Signal Strength Indicator)
-                    // of the last received packet
-                    Serial.print(F("[SX1262] RSSI:\t\t"));
-                    Serial.print(radio.getRSSI());
-                    Serial.println(F(" dBm"));
+        //             // print the RSSI (Received Signal Strength Indicator)
+        //             // of the last received packet
+        //             Serial.print(F("[SX1262] RSSI:\t\t"));
+        //             Serial.print(radio.getRSSI());
+        //             Serial.println(F(" dBm"));
 
-                    // print the SNR (Signal-to-Noise Ratio)
-                    // of the last received packet
-                    Serial.print(F("[SX1262] SNR:\t\t"));
-                    Serial.print(radio.getSNR());
-                    Serial.println(F(" dB"));
+        //             // print the SNR (Signal-to-Noise Ratio)
+        //             // of the last received packet
+        //             Serial.print(F("[SX1262] SNR:\t\t"));
+        //             Serial.print(radio.getSNR());
+        //             Serial.println(F(" dB"));
 
-                    // print frequency error
-                    Serial.print(F("[SX1262] Frequency error:\t"));
-                    Serial.print(radio.getFrequencyError());
-                    Serial.println(F(" Hz"));
-                }
-                else if (state == RADIOLIB_ERR_RX_TIMEOUT)
-                {
-                    // timeout occurred while waiting for a packet
-                    Serial.println(F("timeout!"));
-                }
-                else if (state == RADIOLIB_ERR_CRC_MISMATCH)
-                {
-                    // packet was received, but is malformed
-                    Serial.println(F("CRC error!"));
-                }
-                else
-                {
-                    // some other error occurred
-                    Serial.print(F("failed, code "));
-                    Serial.println(state);
-                }
-            }
-        }
+        //             // print frequency error
+        //             Serial.print(F("[SX1262] Frequency error:\t"));
+        //             Serial.print(radio.getFrequencyError());
+        //             Serial.println(F(" Hz"));
+        //         }
+        //         else if (state == RADIOLIB_ERR_RX_TIMEOUT)
+        //         {
+        //             // timeout occurred while waiting for a packet
+        //             Serial.println(F("timeout!"));
+        //         }
+        //         else if (state == RADIOLIB_ERR_CRC_MISMATCH)
+        //         {
+        //             // packet was received, but is malformed
+        //             Serial.println(F("CRC error!"));
+        //         }
+        //         else
+        //         {
+        //             // some other error occurred
+        //             Serial.print(F("failed, code "));
+        //             Serial.println(state);
+        //         }
+        //     }
+        // }
     }
 }
