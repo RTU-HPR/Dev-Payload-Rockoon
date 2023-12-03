@@ -5,7 +5,7 @@
 void Cansat::init_all_com_bus(Config &config)
 {
     // Initialize PC serial
-
+    /*
     Serial.begin(config.PC_BAUDRATE);
     if (config.WAIT_PC)
     {
@@ -14,7 +14,7 @@ void Cansat::init_all_com_bus(Config &config)
             delay(500);
         }
     }
-
+    */
     SPI.setRX(config.SPI0_RX);
     SPI.setTX(config.SPI0_TX);
     SPI.setSCK(config.SPI0_SCK);

@@ -23,25 +23,17 @@ void Sensor_manager::read_batt_voltage(Log &log, Config &config)
 
 void Sensor_manager::read_heater_current(Log &log, Config &config)
 {
-    // Read voltage and do calculations
-    float adc_reading = analogRead(config.HEATER_CURR_SENS_PIN);
-    float voltage = (adc_reading / 4095.0) * config.HEATER_CURR_CONVERSION_FACTOR;
-
-    // Using Ohm's law calculate current (I=U/R)
-    float new_current = voltage / config.HEATER_RESISTOR_VALUE;
-
-    // Just make sure the voltage value is within reasonable values
-    if (config.HEATER_CURRENT_MIN < new_current && new_current < config.HEATER_CURRENT_MAX)
+    // Formula is from linear regression from experimental data. See #payload channel in Discord on 3/12/2023
+    if ((int)_temp_manager->get_heater_power() == 0)
     {
-        data.heater_current = new_current;
-        _heater_current_averager->add_data(data.heater_current);
-        data.average_heater_current = _heater_current_averager->get_averaged_value();
+        data.heater_current = 0;    
     }
     else
     {
-        log.send_info("Heater current reading outside range: " + String(new_current));
+        data.heater_current = 0.002331 * (int)_temp_manager->get_heater_power() + 0.034313;
     }
-    // NO OTHER CHECKS ARE DONE AS THIS IS VERY SIMPLE AND NOTHING CAN REALLY GO WRONG (Hopefully)
+    _heater_current_averager->add_data(data.heater_current);
+    data.average_heater_current = _heater_current_averager->get_averaged_value();
 }
 
 void Sensor_manager::position_calculation(Log &log, Config &config)
@@ -77,7 +69,6 @@ void Sensor_manager::read_ranging(Log &log, Config &config)
         if (result.distance != 0 && result.time != 0)
         {
             data.ranging_results[_last_slave_index] = result;
-            // Serial.println(_last_slave_index);
         }
 
         // move to next slave
@@ -605,7 +596,6 @@ String Sensor_manager::init(Log &log, Config &config)
         log.send_info("GPS init error");
         // status += "GPS error ";
     }
-    Serial.println("GPS done");
 
     String status;
 
@@ -615,77 +605,6 @@ String Sensor_manager::init(Log &log, Config &config)
     // Set sensor power enable pin to output
     pinMode(config.SENSOR_POWER_ENABLE_PIN, OUTPUT_12MA);
     digitalWrite(config.SENSOR_POWER_ENABLE_PIN, HIGH);
-
-    byte error, address;
-    int nDevices;
-
-    // Serial.println("Scanning Wire ...");
-
-    // nDevices = 0;
-    // for(address = 1; address < 127; address++ )
-    // {
-    // // The i2c_scanner uses the return value of
-    // // the Write.endTransmisstion to see if
-    // // a device did acknowledge to the address.
-    // Wire.beginTransmission(address);
-    // error = Wire.endTransmission();
-
-    // if (error == 0)
-    // {
-    //     Serial.print("I2C device found at address 0x");
-    //     if (address<16)
-    //     Serial.print("0");
-    //     Serial.print(address,HEX);
-    //     Serial.println("  !");
-
-    //     nDevices++;
-    // }
-    // else if (error==4)
-    // {
-    //     Serial.print("Unknown error at address 0x");
-    //     if (address<16)
-    //     Serial.print("0");
-    //     Serial.println(address,HEX);
-    // }
-    // }
-    // if (nDevices == 0)
-    // Serial.println("No I2C devices found\n");
-    // else
-    // Serial.println("done\n");
-
-    // Serial.println("Scanning Wire1..");
-
-    // nDevices = 0;
-    // for(address = 1; address < 127; address++ )
-    // {
-    // // The i2c_scanner uses the return value of
-    // // the Write.endTransmisstion to see if
-    // // a device did acknowledge to the address.
-    // Wire1.beginTransmission(address);
-    // error = Wire1.endTransmission();
-
-    // if (error == 0)
-    // {
-    //     Serial.print("I2C device found at address 0x");
-    //     if (address<16)
-    //     Serial.print("0");
-    //     Serial.print(address,HEX);
-    //     Serial.println("  !");
-
-    //     nDevices++;
-    // }
-    // else if (error==4)
-    // {
-    //     Serial.print("Unknown error at address 0x");
-    //     if (address<16)
-    //     Serial.print("0");
-    //     Serial.println(address,HEX);
-    // }
-    // }
-    // if (nDevices == 0)
-    // Serial.println("No I2C devices found\n");
-    // else
-    // Serial.println("done\n");
 
     // Port extender
     _port_extender = new PCF8575(&Wire1, 0x20);
@@ -715,7 +634,6 @@ String Sensor_manager::init(Log &log, Config &config)
     {
         log.send_info("MS5611 state is set as failed. Sensor not initalized");
     }
-    Serial.println("MS5611 done");
 
     // Inner baro
     if (!config.last_state_variables.inner_baro_failed)
@@ -735,7 +653,6 @@ String Sensor_manager::init(Log &log, Config &config)
     {
         log.send_info("BMP280 state is set as failed. Sensor not initalized");
     }
-    Serial.println("BMP180 done");
 
     // IMU WIRE1
     if (!config.last_state_variables.imu_failed)
@@ -758,8 +675,7 @@ String Sensor_manager::init(Log &log, Config &config)
     {
         log.send_info("IMU state is set as failed. Sensor not initalized");
     }
-    Serial.println("IMU done");
-    /*
+    
     // TEMP PROBE
     if (!config.last_state_variables.inner_temp_probe_failed)
     {
@@ -780,8 +696,7 @@ String Sensor_manager::init(Log &log, Config &config)
     {
         log.send_info("Inner temp probe state is set as failed. Sensor not initalized");
     }
-    Serial.println("STS35 done");
-    */
+    
     // Outer temp probe
     if (!config.last_state_variables.outer_thermistor_failed)
     {
@@ -808,7 +723,7 @@ String Sensor_manager::init(Log &log, Config &config)
 
     // Heater current
     pinMode(config.HEATER_CURR_SENS_PIN, INPUT);
-    _heater_current_averager = new Time_Averaging_Filter<float>(config.BAT_AVERAGE_CAPACITY, config.BAT_AVERAGE_TIME);
+    _heater_current_averager = new Time_Averaging_Filter<float>(100, config.BAT_AVERAGE_TIME);
 
     // RANGING lora
     String result = _ranging_lora.init(config.LORA2400_MODE, config.ranging_device);
@@ -889,7 +804,7 @@ void Sensor_manager::read_data(Log &log, Config &config)
     read_ranging(log, config);
     position_calculation(log, config);
     read_time();
-
+    // Serial.println("PID: " + String(data.p) + " " + String(data.i) + " " + String(data.d) + " | Safe temp: " + String(_temp_manager->_safe_temp) + " | Inner temp: " + String(data.average_inner_temp) + " | Heater pwm: " + String(_temp_manager->get_heater_power()) + " | Heater current: " + String(data.average_heater_current) + " | Heater power: " + String(data.average_heater_current * data.average_batt_voltage));
     get_data_packets(sendable_packet, loggable_packet);
 }
 void Sensor_manager::get_data_packets(String &sendable_packet, String &loggable_packet)

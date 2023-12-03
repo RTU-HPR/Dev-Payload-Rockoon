@@ -86,7 +86,7 @@ public:
         .SPI = &SPI
     };
 
-    const float HEATER_CUT_OFF_VOLTAGE = 5.9; // V
+    const float HEATER_CUT_OFF_VOLTAGE = 4;//5.9; // V
     const float DESIRED_HEATER_TEMP = 35.0;   // in C
 
     const unsigned int OUTER_TEMP_AVERAGE_TIME = 3000;
@@ -192,7 +192,7 @@ public:
     // Heater current
     const float HEATER_CURR_SENS_PIN = 27;
     const float HEATER_CURR_CONVERSION_FACTOR = 3.3 * 3.1251;
-    const float HEATER_RESISTOR_VALUE = 1;
+    const float HEATER_RESISTOR_VALUE = 1.1;
 
     // Parachute
     const int PARACHUTE_MOSFET_1 = 19;

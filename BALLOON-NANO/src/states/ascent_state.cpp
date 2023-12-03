@@ -7,7 +7,7 @@ unsigned long int last_state_save_time_ascent = 0;
 void send_data_ascent(Cansat &cansat)
 {
     // Check if data should be sent over LoRa
-    if (millis() - last_data_transmit_time_ascent >= cansat.config.LORA_DATAPACKET_COOLDOWN_ASCENT)
+    if (millis() - last_data_transmit_time_ascent >= 2000)
     {
         // Send data by LoRa
         cansat.log.send_data(cansat.sensors.sendable_packet, cansat.sensors.loggable_packet, true, false, false);

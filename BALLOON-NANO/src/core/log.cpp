@@ -38,29 +38,23 @@ void Log::init_com_lora(Config &config)
 {
     _com_lora = new RadioLib_Wrapper<radio_module>(config.com_config);
 
-<<<<<<< HEAD
-=======
     // Convert the lambda function to a function pointer and pass it to set_error_output_function
     // to implement this read this: https://stackoverflow.com/questions/45386009/assign-function-pointer-inside-class
     //_com_lora->set_error_output_function(send_error);
 
->>>>>>> 704cc1ccddd66fd41ef68aa91ad572443cd57807
     if (!_com_lora->configure_radio(config.com_config))
     {
         Serial.println("Configuring LoRa failed");
         return;
     }
-<<<<<<< HEAD
     // _com_lora->test_transmit();
-=======
-    _com_lora->test_transmit();
->>>>>>> 704cc1ccddd66fd41ef68aa91ad572443cd57807
     send_info("Lora init success");
 }
 
 // Writes a given message to a file on the SD card
 void Log::write_to_file(String msg, String file_name)
 {
+    return;
     // Write info to SD card
     if (_flash_initialized)
     {
@@ -76,11 +70,7 @@ void Log::write_to_file(String msg, String file_name)
     }
 }
 // Sends the provided message using LoRa
-<<<<<<< HEAD
 bool Log::send_com_lora(String msg, bool retry_till_sent)
-=======
-bool Log::send_com_lora((String msg, bool retry_till_sent = false)
->>>>>>> 704cc1ccddd66fd41ef68aa91ad572443cd57807
 {
     //Serial.println("Before checksum: " + String(msg));
     _com_lora->add_checksum(msg);
@@ -94,11 +84,7 @@ bool Log::send_com_lora((String msg, bool retry_till_sent = false)
         while (!_com_lora->transmit(msg) && !timeout)
         {
             delay(5);
-<<<<<<< HEAD
-            if (millis() > start_time + 1000)
-=======
             if (millis() > start_time + 2000)
->>>>>>> 704cc1ccddd66fd41ef68aa91ad572443cd57807
             {
                 timeout = true;
             }
@@ -184,7 +170,7 @@ void Log::init_flash_files(Config &config)
 void Log::init(Config &config)
 {
     // Init SD card
-    init_flash(config);
+    //init_flash(config);
     init_com_lora(config);
     // Send info about files to base station
     send_info("Telemetry path: " + _telemetry_log_file_path_final);
@@ -213,6 +199,7 @@ void Log::send_info(String msg)
 {
     send_info(msg, true, true, true);
 }
+
 void Log::send_info(String msg, bool log_to_lora, bool log_to_flash, bool log_to_pc)
 {
     if (log_to_pc)
@@ -247,32 +234,11 @@ void Log::send_error(String msg)
     }
 }
 
-void Log::send_data(String sendable_packet, String loggable_packet, bool lora, bool flash, bool pc)
-{
-    if (log_to_pc)
-    {
-        // Prints message to serial
-        Serial.println("!!! " + msg);
-    }
-    if (log_to_lora)
-    {
-        if (!send_com_lora(msg, true))
-        {
-            // failed sending lora msg mybe error
-        }
-    }
-    if (log_to_flash)
-    {
-        // Log data to info file
-        msg = String(millis()) + "," + msg;
-        write_to_file(msg, _error_log_file_path_final);
-    }
-}
-
 void Log::send_data(String sendable_packet, String loggable_packet)
 {
     send_data(sendable_packet, loggable_packet, true, true, true);
 }
+
 void Log::send_data(String sendable_packet, String loggable_packet, bool log_to_lora, bool log_to_flash, bool log_to_pc)
 {
     if (log_to_lora)
