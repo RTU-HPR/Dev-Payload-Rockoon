@@ -17,52 +17,54 @@ void Log::init_flash(Config &config)
     sd_config.setCSPin(config.SD_CARD_CS);
     sd_config.setSPI(*config.SD_CARD_SPI);
 
-    if (!_flash->setConfig(sd_config))
+    if (_flash->setConfig(sd_config))
+    {
+        Serial.println("Config set");
+    }
+    else
     {
         Serial.println("Config not set");
     }
 
     // Initialize flash
-    if (!_flash->begin())
+    if (_flash->begin())
     {
-        send_info("FileSystem init error");
+        Serial.println("FileSystem init success");
+    }
+    else
+    {
+        Serial.println("FileSystem init error");
         return;
     }
-    _flash_initialized = true;
-    Serial.println("Flash init success");
 
-    init_flash_files(config);
+    _flash_initialized = true;
 }
 
 void Log::init_com_lora(Config &config)
 {
-    _com_lora = new RadioLib_Wrapper<radio_module>(config.com_config);
+    _com_lora = new RadioLib_Wrapper<radio_module>(nullptr, 5);
 
-    // Convert the lambda function to a function pointer and pass it to set_error_output_function
-    // to implement this read this: https://stackoverflow.com/questions/45386009/assign-function-pointer-inside-class
-    //_com_lora->set_error_output_function(send_error);
-
-    if (!_com_lora->configure_radio(config.com_config))
+    if (!_com_lora->begin(config.com_config))
     {
         Serial.println("Configuring LoRa failed");
         return;
     }
+    _com_lora->radio.setTCXO(1.8);
+    
     // _com_lora->test_transmit();
-    send_info("Lora init success");
+    send_info("Lora init success", true, false, true); // log_to_flash MUST BE FALSE
 }
 
 // Writes a given message to a file on the SD card
 void Log::write_to_file(String msg, String file_name)
 {
-    return;
     // Write info to SD card
     if (_flash_initialized)
     {
         // write to flash
-        File file = _flash->open(file_name, "a+");
+        File file = _flash->open(file_name, "a");
         if (!file)
         {
-            send_info("Failed opening file: " + String(file_name));
             return;
         }
         file.println(msg);
@@ -136,32 +138,42 @@ void Log::init_flash_files(Config &config)
         if (_header_required)
         {
             File telemetry_file = _flash->open(_telemetry_log_file_path_final, "a+");
-            File error_file = _flash->open(_error_log_file_path_final, "a+");
-            File info_file = _flash->open(_info_log_file_path_final, "a+");
 
             if (!telemetry_file)
             {
                 Serial.println("Failed opening telemetry file");
                 return;
             }
-            if (!error_file)
+            else
             {
-                Serial.println("Failed opening error file");
-                return;
+                telemetry_file.println(config.TELEMETRY_HEADER);
+                telemetry_file.close();
             }
+
+            File info_file = _flash->open(_info_log_file_path_final, "a+");
             if (!info_file)
             {
                 Serial.println("Failed opening info file");
                 return;
             }
+            else
+            {
+                info_file.println(config.INFO_HEADER);
+                info_file.close();
+            }
 
-            telemetry_file.println(config.TELEMETRY_HEADER);
-            info_file.println(config.INFO_HEADER);
-            error_file.println(config.ERROR_HEADER);
-
-            telemetry_file.close();
-            error_file.close();
-            info_file.close();
+            File error_file = _flash->open(_error_log_file_path_final, "a+");
+            if (!error_file)
+            {
+                Serial.println("Failed opening error file");
+                return;
+            }
+            else
+            {
+                error_file.println(config.ERROR_HEADER);
+                error_file.close();
+            }
+            
         }
     }
 }
@@ -170,19 +182,15 @@ void Log::init_flash_files(Config &config)
 void Log::init(Config &config)
 {
     // Init SD card
-    //init_flash(config);
+    init_flash(config);
     init_com_lora(config);
-    // Send info about files to base station
-    send_info("Telemetry path: " + _telemetry_log_file_path_final);
-    send_info("Info path: " + _info_log_file_path_final);
-    send_info("Error path: " + _error_log_file_path_final);
 }
 
 // Checks if LoRa has received any messages. Sets the message to the received one, or to empty string otherwise
-void Log::receive_com_lora(String &msg, float &rssi, float &snr)
+void Log::receive_com_lora(String &msg, float &rssi, float &snr, double &frequency)
 {
     // Get data from LoRa
-    if (!_com_lora->receive(msg, rssi, snr))
+    if (!_com_lora->receive(msg, rssi, snr, frequency))
     {
         return;
     }
@@ -232,11 +240,19 @@ void Log::send_error(String msg)
     {
         // failed sending lora msg mybe error
     }
+    // Log data to info file
+    msg = String(millis()) + "," + msg;
+    write_to_file(msg, _error_log_file_path_final);
 }
 
 void Log::send_data(String sendable_packet, String loggable_packet)
 {
     send_data(sendable_packet, loggable_packet, true, true, true);
+}
+
+void Log::send_data(String msg, bool log_to_lora, bool log_to_flash, bool log_to_pc)
+{
+    send_data(msg, msg, log_to_lora, log_to_flash, log_to_pc);
 }
 
 void Log::send_data(String sendable_packet, String loggable_packet, bool log_to_lora, bool log_to_flash, bool log_to_pc)

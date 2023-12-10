@@ -13,7 +13,7 @@
 3. run the start function
 */
 
-#include <heater_current_test.h>
+#include <sd_card_test.h>
 
 void setup()
 {

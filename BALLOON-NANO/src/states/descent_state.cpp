@@ -51,7 +51,6 @@ bool descent_state_loop(Cansat &cansat)
     if (millis() - last_buzzer_state_change_time > cansat.config.BUZZER_INTERVAL)
     {
         buzzer_state = !buzzer_state;
-        cansat.sensors.set_buzzer(cansat.config, buzzer_state);
     }
 
     // Check for any commands
@@ -90,6 +89,7 @@ bool descent_state_loop(Cansat &cansat)
         cansat.config.last_state_variables.last_integral_term = cansat.sensors._temp_manager->_integral_term;
         cansat.config.last_state_variables.last_safe_temp = cansat.sensors._temp_manager->_safe_temp;
         cansat.save_last_state(cansat);
+        last_state_save_time_descent = millis();
     }
 
     // Check if should wait before next loop
@@ -120,11 +120,10 @@ void descent_state(Cansat &cansat)
         watchdog_update();
 
         // Init sensors
-        String status = String("Sensor status: ") + cansat.sensors.init(cansat.log, cansat.config);
+        cansat.sensors.init(cansat.log, cansat.config);
         // Reset watchdog timer
         watchdog_update();
 
-        cansat.log.send_info(status);
         cansat.log.send_info("Reset done");
     }
 

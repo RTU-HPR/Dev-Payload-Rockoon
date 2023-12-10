@@ -39,28 +39,29 @@ public:
     // hard data rate limiter
     const int MAX_LOOP_TIME = 20; // ms
 
-    bool WAIT_PC = true;
+    bool WAIT_PC = false;
     const bool LOG_TO_STORAGE = true;
 
     // 433 MHz LoRa
     #define radio_module SX1268
-    RadioLib_Wrapper<radio_module>::RADIO_CONFIG com_config
+    RadioLib_Wrapper<radio_module>::Radio_Config com_config
     {
-        .FREQUENCY = 434.5,
-        .CS = 2,
-        .DIO0 = 3,
-        .DIO1 = 5,
-        .FAMILY = RadioLib_Wrapper<radio_module>::RADIO_CONFIG::CHIP_FAMILY::SX126X,
-        .rf_switching = RadioLib_Wrapper<radio_module>::RADIO_CONFIG::RF_SWITCHING::DIO2,
-        // .RX_ENABLE = 0, // only needed if rf_switching = gpio
-        // .TX_ENABLE = 0, // only needed if rf_switching = gpio
-        .RESET = 8,
-        .SYNC_WORD = 0xF4,
-        .TXPOWER = 14,
-        .SPREADING = 10,
-        .CODING_RATE = 7,
-        .SIGNAL_BW = 125,
-        .SPI_BUS = &SPI,
+        .frequency = 434.5,
+        .cs = 2,
+        .dio0 = 3,
+        .dio1 = 5,
+        .family = RadioLib_Wrapper<radio_module>::Radio_Config::Chip_Family::Sx126x,
+        .rf_switching = RadioLib_Wrapper<radio_module>::Radio_Config::Rf_Switching::Dio2,
+        // .rx_enable = 0, // only needed if rf_switching = gpio
+        // .tx_enable = 0, // only needed if rf_switching = gpio
+        .reset = 8,
+        .sync_word = 0xF4,
+        .tx_power = 22,
+        .spreading = 11,
+        .coding_rate = 8,
+        .signal_bw = 62.5,
+        .frequency_correction = false,
+        .spi_bus = &SPI,
     };
 
     // Ranging 2.4 GHZ LoRa
@@ -86,6 +87,7 @@ public:
         .SPI = &SPI
     };
 
+    const float SEA_LEVEL_PRESSURE = 101325;
     const float HEATER_CUT_OFF_VOLTAGE = 4;//5.9; // V
     const float DESIRED_HEATER_TEMP = 35.0;   // in C
 
@@ -202,11 +204,11 @@ public:
     const int BUZZER_INTERVAL = 300;
 
     // SENSOR TIMEOUT CONSTANTS (milliseconds)
-    const unsigned int OUTER_BARO_TIMEOUT = 100;
-    const unsigned int INNER_BARO_TIMEOUT = 100;
-    const unsigned int INNER_TEMP_PROBE_TIMEOUT = 100;
+    const unsigned int OUTER_BARO_TIMEOUT = 200;
+    const unsigned int INNER_BARO_TIMEOUT = 200;
+    const unsigned int INNER_TEMP_PROBE_TIMEOUT = 200;
     const unsigned int IMU_TIMEOUT = 200;
-    const unsigned int OUTER_THERMISTOR_TIMEOUT = 100;
+    const unsigned int OUTER_THERMISTOR_TIMEOUT = 200;
     const unsigned int RANGING_LORA_TIMEOUT = 500;
 
     // Max allowed unsuccessful readings
@@ -252,20 +254,27 @@ public:
     const float OUTER_THERMISTOR_MAX_TEMP = 100;
 
     // detection parameters
-    // ARMING AND DATA SENDING MSG IN PREP SATE
+    // Universal
+    const String RESET_STATE_MSG = "reset_state";
+    // Prepare
     const String ARM_MSG = "arm_confirm";
-    const String DATA_SEND_MSG = "data_send";
-    const String DATA_SEND_STOP_MSG = "data_stop";
+    const String DATA_SEND_MSG = "test_data_send";
+    const String DATA_SEND_STOP_MSG = "test_data_stop";
     const String HEATER_ENABLE_MSG = "heater_enable";
     const String FORMAT_MSG = "format_flash";
-    const String RESET_EEPROM_MSG = "reset_eeprom";
-    const String RESET_STATE_MSG = "reset_state";
     const String RESET_SENSOR_STATES_MSG = "reset_sensor_states";
-    const String TELEMETRY_LOG_FILE_NAME_BASE_PATH = "/CANSAT_TELEMETRY";
-    const String INFO_LOG_FILE_NAME_BASE_PATH = "/CANSAT_INFO";
-    const String ERROR_LOG_FILE_NAME_BASE_PATH = "/CANSAT_ERROR";
+    
+    // Ascent
+    const String DATA_REQUEST_MSG = "data_request";
+    const String RANGING_REQUEST_MSG = "ranging_request";
+    const String TOGGLE_MOSFET_1_MSG = "toggle_mosfet_one";
+    const String TOGGLE_MOSFET_2_MSG = "toggle_mosfet_two";
+    
+    const String TELEMETRY_LOG_FILE_NAME_BASE_PATH = "/CANSAT_TELEMETRY_";
+    const String INFO_LOG_FILE_NAME_BASE_PATH = "/CANSAT_INFO_";
+    const String ERROR_LOG_FILE_NAME_BASE_PATH = "/CANSAT_ERROR_";
 
-    const String TELEMETRY_HEADER = "gps_epoch_time,gps_lat,gps_lng,gps_height,gps_speed,gps_time_since_last,acc_x,acc_y,acc_z,gyro_x,gyro_y,gyro_z,r1_dist,r2_dist,r3_dist,r1_time_since,r2_time_since,r3_time_since,r_pos_lat,r_pos_lng,r_pos_alt,r_pos_time_since,inner_baro_pressure,outer_baro_pressure,avg_inner_temp,avg_outer_temp,heater_power,time_on,avg_battery_voltage,gps_heading,gps_pdop,gps_satellites,raw_inner_temp,raw_outer_temp_thermistor,raw_inner_temp_baro,raw_outer_temp_baro,raw_batt_voltage,raw_heater_current,avg_heater_current,p_term,i_term,d_term,target_temp,r1_time,r1_rssi,r1_snr,r1_f_error,r2_time,r2_rssi,r2_snr,r2_f_error,r3_time,r3_rssi,r3_snr,r3_f_error";
+    const String TELEMETRY_HEADER = "gps_epoch_time,gps_lat,gps_lng,gps_height,gps_speed,gps_time_since_last,acc_x,acc_y,acc_z,gyro_x,gyro_y,gyro_z,r1_dist,r2_dist,r3_dist,r1_time_since,r2_time_since,r3_time_since,r_pos_lat,r_pos_lng,r_pos_alt,r_pos_time_since,inner_baro_pressure,outer_baro_pressure,avg_inner_temp,avg_outer_temp,heater_power,time_on,avg_battery_voltage,gps_heading,gps_pdop,gps_satellites,raw_inner_temp,raw_outer_temp_thermistor,raw_inner_temp_baro,raw_outer_temp_baro,raw_batt_voltage,raw_heater_current,avg_heater_current,p_term,i_term,d_term,target_temp,r1_time,r1_rssi,r1_snr,r1_f_error,r2_time,r2_rssi,r2_snr,r2_f_error,r3_time,r3_rssi,r3_snr,r3_f_error,last_frequency";
     const String INFO_HEADER = "time_on,info";
     const String ERROR_HEADER = "time_on,error";
 };

@@ -37,7 +37,8 @@ public:
     void send_error(String msg, bool log_to_lora, bool log_to_flash, bool log_to_pc);
 
     void send_data(String sendable_packet, String loggable_packet);
+    void send_data(String msg, bool log_to_lora, bool log_to_flash, bool log_to_pc);
     void send_data(String sendable_packet, String loggable_packet, bool log_to_lora, bool log_to_flash, bool log_to_pc);
 
-    void receive_com_lora(String &msg, float &rssi, float &snr);
+    void receive_com_lora(String &msg, float &rssi, float &snr, double &frequency);
 };

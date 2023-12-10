@@ -5,7 +5,6 @@
 void Cansat::init_all_com_bus(Config &config)
 {
     // Initialize PC serial
-    /*
     Serial.begin(config.PC_BAUDRATE);
     if (config.WAIT_PC)
     {
@@ -14,20 +13,17 @@ void Cansat::init_all_com_bus(Config &config)
             delay(500);
         }
     }
-    */
+    
     SPI.setRX(config.SPI0_RX);
     SPI.setTX(config.SPI0_TX);
     SPI.setSCK(config.SPI0_SCK);
     SPI.begin();
 
+    // Not used
     // SPI1.setRX(config.SPI1_RX);
     // SPI1.setTX(config.SPI1_TX);
     // SPI1.setSCK(config.SPI1_SCK);
     // SPI1.begin();
-
-    Wire1.setSCL(config.WIRE1_SCL);
-    Wire1.setSDA(config.WIRE1_SDA);
-    Wire1.begin();
 }
 
 // Read last state from SD card
@@ -36,6 +32,13 @@ void Cansat::read_last_state(Cansat &cansat)
     if (cansat.log._flash_initialized)
     {
         // Open file
+        if (!cansat.log._flash->exists(cansat.config.LAST_STATE_VARIABLE_FILE_NAME))
+        {
+            File file = cansat.log._flash->open(cansat.config.LAST_STATE_VARIABLE_FILE_NAME, "r+");
+            file.close();
+            return;
+        }
+
         File file = cansat.log._flash->open(cansat.config.LAST_STATE_VARIABLE_FILE_NAME, "r");
         if (!file)
         {
@@ -50,12 +53,13 @@ void Cansat::read_last_state(Cansat &cansat)
         {
             read_str += file.readString();
         }
+
         // Make a char array from the string
         int read_str_len = read_str.length() + 1;
         char char_array[read_str_len];
         read_str.toCharArray(char_array, read_str_len);
 
-        cansat.log.send_data("Last state char array: " + String(char_array), "Last state char array: " + String(char_array), true, true, true);
+        cansat.log.send_data("Last state char array: " + String(char_array), true, false, true);
 
         // Set the last state variables to the ones read from the file
         int result = sscanf(char_array,                                     // The char array to read from
@@ -92,7 +96,11 @@ String Cansat::receive_command(Cansat &cansat)
     String incoming_msg = "";
     float rssi;
     float snr;
-    cansat.log.receive_com_lora(incoming_msg, rssi, snr);
+    double frequency;
+
+    cansat.log.receive_com_lora(incoming_msg, rssi, snr, frequency);
+    cansat.sensors.data.last_frequency = frequency;
+
     if (Serial.available() > 0)
     {
         incoming_msg = Serial.readString();
@@ -102,8 +110,7 @@ String Cansat::receive_command(Cansat &cansat)
     if (incoming_msg != "")
     {
         incoming_msg.trim();
-        Serial.println(incoming_msg + ", " + String(rssi) + ", " + String(snr));
-        cansat.log.send_info("Payload received message: " + incoming_msg);
+        cansat.log.send_info("Payload received message: " + incoming_msg  + "," + String(rssi) + "," + String(snr), false, true, true);
     }
     // Return the message
     return incoming_msg;
@@ -190,6 +197,10 @@ void Cansat::check_if_should_restart(Cansat &cansat)
 // Main function that checks and runs appropriate state
 void Cansat::start_states(Cansat &cansat)
 {
+    // Set sensor power enable pin to output
+    pinMode(config.SENSOR_POWER_ENABLE_PIN, OUTPUT_12MA);
+    digitalWrite(config.SENSOR_POWER_ENABLE_PIN, HIGH);
+    
     // Initialize communications
     cansat.init_all_com_bus(cansat.config);
 
@@ -198,6 +209,8 @@ void Cansat::start_states(Cansat &cansat)
 
     // Read last state data
     read_last_state(cansat);
+
+    cansat.log.init_flash_files(cansat.config);
 
     // Set required variables from last state
     recover_state_variables(cansat);
@@ -221,7 +234,7 @@ void Cansat::start_states(Cansat &cansat)
     cansat.log.send_info("Watchdog is enabled with time: " + String(cansat.config.WATCHDOG_TIMER));
 
     // If ascent/descent state is not set, start in prepare state
-    if (true)
+    if (last_state == 0)
     {
         cansat.log.send_info("No previous state. Starting from PREP state");
         // Start prepare state
@@ -243,7 +256,7 @@ void Cansat::start_states(Cansat &cansat)
         descent_state(cansat);
     }
     // If ascent state is set as the last state
-    else if (false)
+    else if (last_state == 1)
     {
         // FOR DEBUGGING PURPOSES
         cansat.config.WAIT_PC = true;
@@ -265,7 +278,7 @@ void Cansat::start_states(Cansat &cansat)
         descent_state(cansat);
     }
     // If descent state is set as the last state
-    else if (false)
+    else if (last_state == 2)
     {
         // FOR DEBUGGING PURPOSES
         cansat.config.WAIT_PC = true;

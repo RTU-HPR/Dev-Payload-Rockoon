@@ -56,6 +56,7 @@ void start()
         file.println(String(i));
         file.close();
 
+        Serial.println("Wrote " + String(i) + " to SD card");
         delay(1000);
     }
 }

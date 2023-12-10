@@ -52,7 +52,7 @@ void Sensor_manager::position_calculation(Log &log, Config &config)
     return;
 }
 
-void Sensor_manager::read_ranging(Log &log, Config &config)
+void Sensor_manager::read_ranging(Config &config)
 {
     // DON'T KNOW WHAT ARE THE EXPECTED VALUES SO ERROR CHECKING WILL BE IMPLEMENTED LATER
     // try to range next slave address
@@ -98,8 +98,8 @@ void Sensor_manager::read_gps(Log &log)
         long new_gps_lat_raw = _gps.getLatitude();
         long new_gps_lng_raw = _gps.getLongitude();
 
-        double new_gps_lat = new_gps_lat_raw / 1000000.0;
-        double new_gps_lng = new_gps_lng_raw / 1000000.0;
+        double new_gps_lat = new_gps_lat_raw / 10000000.0;
+        double new_gps_lng = new_gps_lng_raw / 10000000.0;
 
         // SANITY CHECK
         // Check if location is 0 (not yet established) or somewhere in the northern eastern Europe
@@ -117,7 +117,7 @@ void Sensor_manager::read_gps(Log &log)
         }
         else
         {
-            log.send_info("GPS location is not correct: " + String(new_gps_lat, 6) + " " + String(new_gps_lng, 6));
+            Serial.println("GPS location is not correct: " + String(new_gps_lat, 6) + " " + String(new_gps_lng, 6));
         }
     }
 }
@@ -148,6 +148,10 @@ void Sensor_manager::read_outer_baro(Log &log, Config &config)
             data.outer_baro_pressure = new_pressure;
             // Assume that temp reading is also good
             data.outer_baro_temp = new_temperature;
+            // Hypsometric formula
+            float new_altitude = ((pow((config.SEA_LEVEL_PRESSURE/new_pressure), (1/5.257)) - 1) * (new_temperature + 273.15)) / 0.065;
+            data.outer_baro_altitude = new_altitude;
+            data.outer_baro_altitude_speed = (new_altitude - data.outer_baro_altitude) / (float)(millis() - _last_baro_reading_time);
         }
         else
         {
@@ -177,9 +181,9 @@ void Sensor_manager::read_outer_baro(Log &log, Config &config)
         if (reading_end - reading_start >= config.OUTER_BARO_TIMEOUT)
         {
             // Set sensor to failed
-            log.send_info("Outer baro timeout detected!");
-            config.last_state_variables.outer_baro_failed = 1;
-            _outer_baro_initialized = false;
+            //log.send_info("Outer baro timeout detected!");
+            //config.last_state_variables.outer_baro_failed = 1;
+            //_outer_baro_initialized = false;
         }
     }
 }
@@ -250,8 +254,8 @@ void Sensor_manager::read_inner_baro(Log &log, Config &config)
         if (reading_end - reading_start >= config.INNER_BARO_TIMEOUT)
         {
             // Set sensor to failed
-            log.send_info("Inner baro timeout detected!");
-            _inner_baro_initialized = false;
+            //log.send_info("Inner baro timeout detected!");
+            //_inner_baro_initialized = false;
         }
     }
 }
@@ -357,8 +361,8 @@ void Sensor_manager::read_imu(Log &log, Config &config)
         // If the actual reading of the sensor took too long, something is probably wrong with it
         if (reading_end - reading_start >= config.IMU_TIMEOUT)
         {
-            log.send_info("IMU timeout detected!");
-            _imu_initialized = false;
+            //log.send_info("IMU timeout detected!");
+            //_imu_initialized = false;
         }
 
         // Restart Pico if sensor has failed and if it hasn't already been restarted
@@ -504,7 +508,7 @@ void Sensor_manager::update_heater(Log &log, Config &config)
             {
                 // If the temp difference between both sensors is less 5 degrees
                 // both sensors are probably working fine
-                if (abs(data.average_inner_temp - data.average_inner_temp_baro) <= 5)
+                if (abs(data.average_inner_temp - data.average_inner_temp_baro) <= 10)
                 {
                     best_inner_temp = data.average_inner_temp;
                 }
@@ -565,55 +569,47 @@ void Sensor_manager::update_heater(Log &log, Config &config)
 }
 
 // PUBLIC FUNCTIONS
-String Sensor_manager::init(Log &log, Config &config)
+void Sensor_manager::init(Log &log, Config &config)
 {
-    Wire.setSCL(1);
-    Wire.setSDA(0);
-    // Wire.setClock(400000);
+    Wire.setSCL(config.WIRE0_SCL);
+    Wire.setSDA(config.WIRE0_SDA);
     Wire.begin();
+
     // GPS
-    if (_gps.begin(Wire, 0x42) == true)
+    //_gps.enableDebugging();
+    Serial.print("Starting GPS ");
+    while (_gps.begin(Wire, 0x42) == false)
     {
+        Serial.print(".");
+    }
+    Serial.println(" done");
+    _gps.setI2COutput(COM_TYPE_UBX); // Set the I2C port to output UBX only (turn off NMEA noise)
+    _gps.setMeasurementRate(500);    // 2 Hz
+    _gps.setNavigationFrequency(2);  // Produce two solutions per second
+    _gps.setAutoPVT(true);           // Tell the GNSS to "send" each solution
 
-        _gps.setI2COutput(COM_TYPE_UBX); // Set the I2C port to output UBX only (turn off NMEA noise)
-        _gps.setMeasurementRate(1000);   // 2 Hz
-        _gps.setNavigationFrequency(1);  // Produce two solutions per second
-        _gps.setAutoPVT(true);           // Tell the GNSS to "send" each solution
-
-        if (!_gps.setDynamicModel(DYN_MODEL_AIRBORNE2g)) // Set the dynamic model to Airborne2g
-        {
-            log.send_info("GPS Dynamic model setting error");
-            // status += "GPS dynamic model error ";
-        }
-        else
-        {
-            _gps_initialized = true;
-        }
+    if (!_gps.setDynamicModel(DYN_MODEL_AIRBORNE2g)) // Set the dynamic model to Airborne2g
+    {
+        log.send_info("GPS Dynamic model setting error");
+        // status += "GPS dynamic model error ";
     }
     else
     {
-        // log.send_info("GPS init error");
-        log.send_info("GPS init error");
-        // status += "GPS error ";
+        _gps_initialized = true;
     }
-
-    String status;
-
     // Change analogRead resolution
     analogReadResolution(12);
 
-    // Set sensor power enable pin to output
-    pinMode(config.SENSOR_POWER_ENABLE_PIN, OUTPUT_12MA);
-    digitalWrite(config.SENSOR_POWER_ENABLE_PIN, HIGH);
+    Wire1.setSCL(config.WIRE1_SCL);
+    Wire1.setSDA(config.WIRE1_SDA);
+    Wire1.begin();
 
     // Port extender
-    _port_extender = new PCF8575(&Wire1, 0x20);
-    _port_extender->pinMode(config.PORT_EXTENDER_BUZZER_PIN, OUTPUT);
-    _port_extender->pinMode(config.PORT_EXTENDER_LED_2_PIN, OUTPUT);
-    _port_extender->pinMode(config.PORT_EXTENDER_LED_1_PIN, OUTPUT);
-    _port_extender->digitalWrite(config.PORT_EXTENDER_BUZZER_PIN, LOW);
-    _port_extender->digitalWrite(config.PORT_EXTENDER_LED_2_PIN, LOW);
-    _port_extender->digitalWrite(config.PORT_EXTENDER_LED_1_PIN, LOW);
+    PCF8575 _port_extender = PCF8575(0x20, &Wire1);
+    _port_extender.begin();
+    _port_extender.write(config.PORT_EXTENDER_BUZZER_PIN, LOW);
+    _port_extender.write(config.PORT_EXTENDER_LED_2_PIN, LOW);
+    _port_extender.write(config.PORT_EXTENDER_LED_1_PIN, LOW);    
 
     // Outer baro
     if (!config.last_state_variables.outer_baro_failed)
@@ -621,8 +617,7 @@ String Sensor_manager::init(Log &log, Config &config)
         _outer_baro = MS5611(0x76);
         if (!_outer_baro.begin(&Wire1))
         {
-            log.send_info("MS5611 init error");
-            status += "MS5611 error ";
+            log.send_error("MS5611 init error");
         }
         else
         {
@@ -632,7 +627,7 @@ String Sensor_manager::init(Log &log, Config &config)
     }
     else
     {
-        log.send_info("MS5611 state is set as failed. Sensor not initalized");
+        log.send_error("MS5611 state is set as failed. Sensor not initalized");
     }
 
     // Inner baro
@@ -641,8 +636,7 @@ String Sensor_manager::init(Log &log, Config &config)
         _inner_baro = Adafruit_BMP085();
         if (!_inner_baro.begin(config.BMP180_ADDRESS_I2C, &Wire1))
         {
-            log.send_info("BMP180 init error");
-            status += "BMP180 error ";
+            log.send_error("BMP180 init error");
         }
         else
         {
@@ -651,16 +645,14 @@ String Sensor_manager::init(Log &log, Config &config)
     }
     else
     {
-        log.send_info("BMP280 state is set as failed. Sensor not initalized");
+        log.send_error("BMP280 state is set as failed. Sensor not initalized");
     }
-
     // IMU WIRE1
     if (!config.last_state_variables.imu_failed)
     {
         if (_imu.begin_I2C(0x6B, &Wire1))
         {
-            log.send_info("IMU init error");
-            status += "IMU error ";
+            log.send_error("IMU init error");
         }
         else
         {
@@ -673,9 +665,8 @@ String Sensor_manager::init(Log &log, Config &config)
     }
     else
     {
-        log.send_info("IMU state is set as failed. Sensor not initalized");
+        log.send_error("IMU state is set as failed. Sensor not initalized");
     }
-    
     // TEMP PROBE
     if (!config.last_state_variables.inner_temp_probe_failed)
     {
@@ -688,15 +679,13 @@ String Sensor_manager::init(Log &log, Config &config)
         if (test > 100.00 || test < -100.0 || test == 0.00)
         {
             _inner_temp_probe_initialized = false;
-            log.send_info("Inner temp probe init error");
-            status += "Inner temp probe error";
+            log.send_error("Inner temp probe init error");
         }
     }
     else
     {
-        log.send_info("Inner temp probe state is set as failed. Sensor not initalized");
+        log.send_error("Inner temp probe state is set as failed. Sensor not initalized");
     }
-    
     // Outer temp probe
     if (!config.last_state_variables.outer_thermistor_failed)
     {
@@ -705,10 +694,8 @@ String Sensor_manager::init(Log &log, Config &config)
     }
     else
     {
-        log.send_info("Outer_thermistor state is set as failed. Sensor not initalized");
+        log.send_error("Outer_thermistor state is set as failed. Sensor not initalized");
     }
-    Serial.print("Thermistor done");
-
     // TEMP CALCULATOR
     _temp_manager = new Temperature_Manager(config.HEATER_MOSFET, config.DESIRED_HEATER_TEMP);
 
@@ -724,7 +711,6 @@ String Sensor_manager::init(Log &log, Config &config)
     // Heater current
     pinMode(config.HEATER_CURR_SENS_PIN, INPUT);
     _heater_current_averager = new Time_Averaging_Filter<float>(100, config.BAT_AVERAGE_TIME);
-
     // RANGING lora
     String result = _ranging_lora.init(config.LORA2400_MODE, config.ranging_device);
     if (result == "")
@@ -733,10 +719,8 @@ String Sensor_manager::init(Log &log, Config &config)
     }
     else
     {
-        status += result;
+        log.send_error("Ranging LoRa init error");
     }
-
-    return status;
 }
 
 void Sensor_manager::reset_sensor_power(Config &config)
@@ -757,21 +741,6 @@ bool Sensor_manager::read_switch_state(Config &config)
 {
     bool switch_state = digitalRead(config.LAUNCH_RAIL_SWITCH_PIN);
     return switch_state;
-}
-
-void Sensor_manager::set_buzzer(Config &config, bool state)
-{
-    _port_extender->digitalWrite(config.PORT_EXTENDER_BUZZER_PIN, state);
-}
-
-void Sensor_manager::set_status_led_1(Config &config, bool state)
-{
-    _port_extender->digitalWrite(config.PORT_EXTENDER_LED_1_PIN, state);
-}
-
-void Sensor_manager::set_status_led_2(Config &config, bool state)
-{
-    _port_extender->digitalWrite(config.PORT_EXTENDER_LED_2_PIN, state);
 }
 
 void Sensor_manager::read_data(Log &log, Config &config)
@@ -801,7 +770,7 @@ void Sensor_manager::read_data(Log &log, Config &config)
     update_heater(log, config);
 
     // MISC.
-    read_ranging(log, config);
+    // read_ranging(log, config);
     position_calculation(log, config);
     read_time();
     // Serial.println("PID: " + String(data.p) + " " + String(data.i) + " " + String(data.d) + " | Safe temp: " + String(_temp_manager->_safe_temp) + " | Inner temp: " + String(data.average_inner_temp) + " | Heater pwm: " + String(_temp_manager->get_heater_power()) + " | Heater current: " + String(data.average_heater_current) + " | Heater power: " + String(data.average_heater_current * data.average_batt_voltage));
@@ -811,12 +780,13 @@ void Sensor_manager::get_data_packets(String &sendable_packet, String &loggable_
 {
     update_data_packet(data, sendable_packet, loggable_packet);
 }
+
 // Updates the message data packets with newest sensor data
 void Sensor_manager::update_data_packet(Sensor_data &data, String &result_sent, String &result_log)
 {
     String packet;
     // GPS
-    packet += String(data.gps_epoch_time); // 1
+    packet += String(data.gps_epoch_time, DEC); // 1
     packet += ",";
     packet += String(data.gps_lat, 6); // 2
     packet += ",";
@@ -868,9 +838,9 @@ void Sensor_manager::update_data_packet(Sensor_data &data, String &result_sent, 
     packet += ",";
 
     // Baro
-    packet += String(data.inner_baro_pressure); // 23
+    packet += String((int)data.inner_baro_pressure); // 23
     packet += ",";
-    packet += String(data.outer_baro_pressure); // 24
+    packet += String((int)data.outer_baro_pressure); // 24
     packet += ",";
 
     // Temperatures
@@ -880,13 +850,17 @@ void Sensor_manager::update_data_packet(Sensor_data &data, String &result_sent, 
     packet += ",";
 
     // Heater
-    packet += String(data.heater_power); // 27
+    packet += String(data.heater_power, 2); // 27
     packet += ",";
 
     // Misc
     packet += String(data.time); // 28
     packet += ",";
     packet += String(data.average_batt_voltage, 2); // 29
+    packet += ",";
+    packet += String(data.outer_baro_altitude, 2);
+    packet += ",";
+    packet += String(data.outer_baro_altitude_speed, 2);
 
     result_sent = packet;
 
@@ -895,9 +869,9 @@ void Sensor_manager::update_data_packet(Sensor_data &data, String &result_sent, 
     // GPS
     packet += String(data.gps_heading, 2); // 30
     packet += ",";
-    packet += String(data.gps_pdop, 0); // 31
+    packet += String(data.gps_pdop, 2); // 31
     packet += ",";
-    packet += String(data.gps_satellites, 0); // 32
+    packet += String(data.gps_satellites); // 32
     packet += ",";
 
     // Temperatures
@@ -908,7 +882,8 @@ void Sensor_manager::update_data_packet(Sensor_data &data, String &result_sent, 
     packet += String(data.inner_baro_temp, 2); // 35
     packet += ",";
     packet += String(data.outer_baro_temp, 2); // 36
-
+    packet += ",";
+    
     // Voltage/current
     packet += String(data.batt_voltage, 2); // 37
     packet += ",";
@@ -918,13 +893,13 @@ void Sensor_manager::update_data_packet(Sensor_data &data, String &result_sent, 
     packet += ",";
 
     // PID
-    packet += String(data.p, 4); // 40
+    packet += String(data.p, 2); // 40
     packet += ",";
-    packet += String(data.i, 4); // 41
+    packet += String(data.i, 2); // 41
     packet += ",";
-    packet += String(data.d, 4); // 42
+    packet += String(data.d, 2); // 42
     packet += ",";
-    packet += String(data.target_temp, 1); // 43
+    packet += String((int)data.target_temp); // 43
     packet += ",";
 
     // Ranging
@@ -952,5 +927,8 @@ void Sensor_manager::update_data_packet(Sensor_data &data, String &result_sent, 
     packet += ",";
     packet += String(data.ranging_results[2].f_error, 2); // 55
 
+    packet += ",";
+    packet += String(data.last_frequency, 8);
+    
     result_log = packet;
 }

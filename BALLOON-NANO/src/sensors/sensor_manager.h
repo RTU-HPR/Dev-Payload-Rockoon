@@ -38,6 +38,8 @@ public:
 
         float outer_baro_pressure = 0;
         float outer_baro_temp = 0;
+        float outer_baro_altitude = 0;
+        float outer_baro_altitude_speed = 0;
 
         float inner_baro_pressure = 0; // Pa
         float inner_baro_temp = 0;     // C
@@ -71,17 +73,19 @@ public:
         unsigned long time_since_last_gps = 0;            // ms
         unsigned long times_since_last_ranging_result[3]; // ms
         unsigned long time_since_last_ranging_pos = 0;    // ms
+
+        double last_frequency = 0;
     };
 
     SFE_UBLOX_GNSS _gps;
     unsigned long _last_gps_packet_time = 0;
 private:
     // SENSOR OBJECTS AND Communication
-    // GPS UART0
-
+    // GPS UART0'
     // BARO WIRE0
     MS5611 _outer_baro;
     int _outer_baro_consecutive_failed_readings = 0;
+    unsigned long int _last_baro_reading_time = 0;
 
     // BARO WIRE0
     Adafruit_BMP085 _inner_baro;
@@ -125,7 +129,6 @@ private:
     int _heater_current_consecutive_failed_readings = 0;
 
     void position_calculation(Log &log, Config &config);
-    void read_ranging(Log &log, Config &config);
     void read_gps(Log &log);
     void read_outer_baro(Log &log, Config &config);
     void read_inner_baro(Log &log, Config &config);
@@ -139,14 +142,13 @@ private:
     void update_data_packet(Sensor_data &data, String &result_sent, String &result_log);
 
 public:
+    void read_ranging(Config &config);
+
     String loggable_packet = "";
     String sendable_packet = "";
     
     // Temp manager
     Temperature_Manager *_temp_manager;
-
-    // Port extender
-    PCF8575 *_port_extender;
 
     bool _hard_reset_required = false;
 
@@ -168,12 +170,9 @@ public:
 
     Sensor_data data;
 
-    String init(Log &log, Config &config);
+    void init(Log &log, Config &config);
     void reset_sensor_power(Config &config);
     bool read_switch_state(Config &config);
-    void set_buzzer(Config &config, bool state);
-    void set_status_led_1(Config &config, bool state);
-    void set_status_led_2(Config &config, bool state);
     void read_data(Log &log, Config &config);
     void get_data_packets(String &sendable_packet, String &loggable_packet);
 };
