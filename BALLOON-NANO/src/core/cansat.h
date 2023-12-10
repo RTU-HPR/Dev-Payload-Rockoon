@@ -10,7 +10,6 @@
 #include <SPI.h>
 #include <Wire.h>
 #include <Servo.h>
-#include <EEPROM.h>
 
 // Cansat object
 class Cansat

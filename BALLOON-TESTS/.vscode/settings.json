@@ -1,23 +1,20 @@
 {
     "cSpell.words": [
-        "averager",
-        "averagers",
-        "Cansat",
-        "loggable",
+        "Datarate",
+        "GPIO",
+        "MOSI",
         "RADIOLIB",
-        "trilaterate"
+        "RSSI",
+        "TCXO",
+        "TXPOWER"
     ],
-    "cmake.configureOnOpen": false,
     "files.associations": {
-        "*.tcc": "cpp",
-        "unordered_map": "cpp",
-        "numeric": "cpp",
-        "ostream": "cpp",
-        "new": "cpp",
         "array": "cpp",
+        "*.tcc": "cpp",
         "deque": "cpp",
         "list": "cpp",
         "string": "cpp",
+        "unordered_map": "cpp",
         "vector": "cpp",
         "string_view": "cpp",
         "memory": "cpp",

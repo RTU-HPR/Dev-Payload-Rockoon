@@ -1,22 +1,20 @@
 #pragma once
-#include <TinyGPS++.h>
-#include <SoftwareSerial.h>
-#include <Wire.h>
-#include <MS5611.h>
-#include <Adafruit_SHTC3.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_BMP085.h>
-#include <LSM6.h>
-#include <SoftwareSerial.h>
-#include <NTC_Thermistor.h>
-#include <RadioLib.h>
 #include "temperature_manager.h"
 #include <ranging_wrapper.h>
 #include "core/data_filtering.h"
-#include <Array.h>
 #include "config.h"
 #include <core/log.h>
+
+#include <Wire.h>
+#include <MS5611.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BMP085.h>
+#include <Adafruit_LSM6DSL.h>
+#include <NTC_Thermistor.h>
+#include <RadioLib.h>
+#include <Array.h>
 #include <PCF8575.h>
+#include <SparkFun_u-blox_GNSS_Arduino_Library.h> //http://librarymanager/All#SparkFun_u-blox_GNSS
 
 /**
  * @brief A class responsible for initializing, managing and reading data from all the different sensors and controllers. All the data is stored in the data struct
@@ -24,23 +22,77 @@
  */
 class Sensor_manager
 {
+public:
+    // TODO make a different struct for sendable data and raw data
+    struct Sensor_data
+    {
+        // array data is ordered: x y z
+        double gps_lat = 0;          // Latitude
+        double gps_lng = 0;          // Longitutude
+        float gps_height = 0;        // Altitude
+        int gps_satellites = 0;      // Satellites in view
+        float gps_speed = 0;         // Speed
+        float gps_heading = 0;       // Heading
+        float gps_pdop = 0;          // Precision
+        unsigned long gps_epoch_time = 0; // Time in unix
+
+        float outer_baro_pressure = 0;
+        float outer_baro_temp = 0;
+        float outer_baro_altitude = 0;
+        float outer_baro_altitude_speed = 0;
+
+        float inner_baro_pressure = 0; // Pa
+        float inner_baro_temp = 0;     // C
+
+        float inner_temp_probe = 0; // C
+        float outer_temp_thermistor = 0;
+
+        float average_inner_temp = 0; // C
+        float average_inner_temp_baro = 0;
+        float average_outer_temp = 0; // C
+
+        float heater_power = 0; // 0-255
+        float target_temp = 0;
+        float p = 0; // proportional * coefficient
+        float i = 0; // integral * coefficient
+        float d = 0; // derivative * coefficient
+
+        float acc[3] = {0, 0, 0};  // m/s^2
+        float gyro[3] = {0, 0, 0}; // dps
+
+        Ranging_Wrapper::Ranging_Result ranging_results[3];
+        Ranging_Wrapper::Position ranging_position = Ranging_Wrapper::Position(0, 0, 0);
+
+        float batt_voltage = 0;         // V
+        float average_batt_voltage = 0; // v
+
+        float heater_current = 0;
+        float average_heater_current = 0;
+
+        unsigned long time = 0;                           // ms
+        unsigned long time_since_last_gps = 0;            // ms
+        unsigned long times_since_last_ranging_result[3]; // ms
+        unsigned long time_since_last_ranging_pos = 0;    // ms
+
+        double last_frequency = 0;
+    };
+
+    SFE_UBLOX_GNSS _gps;
+    unsigned long _last_gps_packet_time = 0;
 private:
     // SENSOR OBJECTS AND Communication
-    // GPS UART0
-    TinyGPSPlus _gps;
-    SerialUART *_gps_serial;
-    unsigned long _last_gps_packet_time = 0;
-
+    // GPS UART0'
     // BARO WIRE0
     MS5611 _outer_baro;
     int _outer_baro_consecutive_failed_readings = 0;
+    unsigned long int _last_baro_reading_time = 0;
 
     // BARO WIRE0
     Adafruit_BMP085 _inner_baro;
     int _inner_baro_consecutive_failed_readings = 0;
 
     // IMU WIRE0
-    LSM6 _imu;
+    Adafruit_LSM6DS _imu;
     int _imu_consecutive_failed_readings = 0;
 
     // TEMPERATURE WIRE0
@@ -62,8 +114,8 @@ private:
     bool _heater_enabled = false;
     bool _heater_constant = false;
     float _heater_constant_temp;
-    
-    // Averagers 
+
+    // Averagers
     Time_Averaging_Filter<float> *_inner_temp_averager;
     Time_Averaging_Filter<float> *_inner_temp_averager_baro;
     Time_Averaging_Filter<float> *_outer_temp_averager;
@@ -72,13 +124,12 @@ private:
 
     // Battery
     int _batt_voltage_consecutive_failed_readings = 0;
-    
+
     // Heater current
     int _heater_current_consecutive_failed_readings = 0;
 
     void position_calculation(Log &log, Config &config);
-    void read_ranging(Log &log, Config &config);
-    void read_gps(Log &log, Config &config);
+    void read_gps(Log &log);
     void read_outer_baro(Log &log, Config &config);
     void read_inner_baro(Log &log, Config &config);
     void read_inner_temp_probe(Log &log, Config &config);
@@ -88,14 +139,17 @@ private:
     void update_heater(Log &log, Config &config);
     void read_batt_voltage(Log &log, Config &config);
     void read_heater_current(Log &log, Config &config);
+    void update_data_packet(Sensor_data &data, String &result_sent, String &result_log);
 
 public:
+    void read_ranging(Config &config);
+
+    String loggable_packet = "";
+    String sendable_packet = "";
+    
     // Temp manager
     Temperature_Manager *_temp_manager;
 
-    // Port extender
-    PCF8575 *_port_extender;
-    
     bool _hard_reset_required = false;
 
     bool _gps_initialized = false;
@@ -106,52 +160,6 @@ public:
     bool _outer_thermistor_initialized = false;
     bool _ranging_lora_initalized = false;
 
-    // TODO make a different struct for sendable data and raw data
-    struct Sensor_data
-    {
-        // array data is ordered: x y z
-        float gps_lat = 0;      // deg
-        float gps_lng = 0;      // deg
-        float gps_height = 0;   // m
-        int gps_satellites = 0; // count
-
-        float outer_baro_pressure = 0;
-        float outer_baro_temp = 0;
-
-        float inner_baro_pressure = 0; // Pa
-        float inner_baro_temp = 0;     // C
-
-        float inner_temp_probe = 0; // C
-        float outer_temp_thermistor = 0;
-
-        float average_inner_temp = 0;  // C
-        float average_inner_temp_baro = 0;
-        float average_outer_temp = 0; // C
-        float heater_power = 0;        // 0-255
-        float p = 0;                   // proportional * coefficient
-        float i = 0;                   // integral * coefficient
-        float d = 0;                   // derivative * coefficient
-        float target_temp = 0;
-
-        float acc[3] = {0, 0, 0};  // m/s^2
-        float gyro[3] = {0, 0, 0}; // dps
-
-        Ranging_Wrapper::Ranging_Result ranging_results[3];
-        Ranging_Wrapper::Position ranging_position = Ranging_Wrapper::Position(0, 0, 0);
-
-        float batt_voltage = 0;         // V
-        float average_batt_voltage = 0; // v
-
-        float heater_current = 0;
-        float average_heater_current = 0;
-
-        unsigned long time = 0;                           // ms
-        unsigned long time_since_last_gps = 0;            // ms
-        unsigned long times_since_last_ranging_result[3]; // ms
-        unsigned long time_since_last_ranging_pos = 0;    // ms
-        unsigned long gps_time = 0;                       //
-    };
-
     // Set heater state
     void set_heater(bool state)
     {
@@ -159,16 +167,12 @@ public:
         data.heater_power = 0;
         _temp_manager->reset();
     };
-    
-    String header = "Data header:";
+
     Sensor_data data;
-    
-    String init(Log &log, Config &config);
+
+    void init(Log &log, Config &config);
     void reset_sensor_power(Config &config);
     bool read_switch_state(Config &config);
-    void set_buzzer(Config &config, bool state);
-    void set_status_led_1(Config &config, bool state);
-    void set_status_led_2(Config &config, bool state);
     void read_data(Log &log, Config &config);
-    void update_data_packet(Sensor_data &data, String &result_sent, String &result_log);
+    void get_data_packets(String &sendable_packet, String &loggable_packet);
 };

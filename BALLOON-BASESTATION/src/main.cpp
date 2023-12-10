@@ -1,26 +1,41 @@
 #include <Arduino.h>
 #include <SPI.h>
+#include <Wire.h>
 #include "ranging_wrapper.h"
-#include "RFM_wrapper.h"
-bool transmiting_mode = false; // dont change
+#include <RadioLib_wrapper.h>
 
 String ARM_MSG = "arm_confirm";
-String DATA_MSG = "data_send";
-String DATA_STOP_MSG = "data_stop";
+String DATA_MSG = "test_data_send";
+String DATA_STOP_MSG = "test_data_stop";
 String HEATER_ENABLE = "heater_enable";
+const String DATA_REQUEST_MSG = "data_request";
+const String RANGING_REQUEST_MSG = "ranging_request";
+const String TOGGLE_MOSFET_1_MSG = "toggle_mosfet_one";
+const String TOGGLE_MOSFET_2_MSG = "toggle_mosfet_two";
 
-RFM_Wrapper com_lora;
-RFM_Wrapper::Lora_Device com_config = {.FREQUENCY = 434.5,
-                                       .CS = 7,
-                                       .DIO0 = 5,
-                                       .DIO1 = 4,
-                                       .RESET = 6,
-                                       .SYNC_WORD = 0xF4,
-                                       .TXPOWER = 14,
-                                       .SPREADING = 10,
-                                       .CODING_RATE = 7,
-                                       .SIGNAL_BW = 125,
-                                       .SPI = &SPI1};
+// 433 MHz LoRa
+#define radio_module RFM96
+RadioLib_Wrapper<radio_module> *com_lora;
+RadioLib_Wrapper<radio_module>::Radio_Config com_config{
+    .frequency = 434.5,
+    .cs = 7,
+    .dio0 = 5,
+    .dio1 = 4,
+    .family = RadioLib_Wrapper<radio_module>::Radio_Config::Chip_Family::Sx127x,
+    .rf_switching = RadioLib_Wrapper<radio_module>::Radio_Config::Rf_Switching::Disabled,
+    // .RX_ENABLE = 0, // only needed if rf_switching = gpio
+    // .TX_ENABLE = 0, // only needed if rf_switching = gpio
+    .reset = 6,
+    .sync_word = 0xF4,
+    .tx_power = 20,
+    .spreading = 11,
+    .coding_rate = 8,
+    .signal_bw = 62.5,
+
+    .frequency_correction = true,
+
+    .spi_bus = &SPI1,
+};
 
 Ranging_Wrapper::Mode LORA2400_MODE = Ranging_Wrapper::Mode::SLAVE;
 Ranging_Wrapper ranging_lora;
@@ -39,19 +54,28 @@ Ranging_Wrapper::Lora_Device ranging_device = {.FREQUENCY = 2405.6,
 const int buzzer_pin = 3;
 const int buzz_length = 200;
 bool master_basestation = true;
+bool transmiting_mode = false;
 
 void read_main_lora()
 {
-    if (!com_lora.get_init_status())
+    String msg = "";
+    float rssi;
+    float snr;
+    double frequency;
+
+    // Get data from LoRa
+    if (!com_lora->receive(msg, rssi, snr, frequency))
     {
         return;
     }
-    String msg;
-    float rssi = 0, snr = 0;
-    if (!com_lora.recieve(msg, rssi, snr))
+
+    bool status = com_lora->check_checksum(msg);
+    if (!status)
     {
-        return;
+        String error_msg = "Message checksum fail";
+        // Serial.println(error_msg);
     }
+    // Serial.println("Message received: " + msg);
 
     if (msg.charAt(0) == '!')
     {
@@ -70,30 +94,20 @@ void read_main_lora()
 
 void send_main_lora(String msg)
 {
-    if (!com_lora.get_init_status())
-    {
-        return;
-    }
-    while (com_lora.send(msg) == false)
-    {
-        delay(50);
-    }
-
-    return;
+    com_lora->add_checksum(msg);
+    com_lora->transmit(msg);
 }
 
-void init_LoRa_main(RFM_Wrapper::Lora_Device lora_cfg)
+void init_LoRa_main()
 {
-    // delete &lora;
-    String status = com_lora.init(true, com_config);
-    if (com_lora.get_init_status())
+    // Init LoRa
+    com_lora = new RadioLib_Wrapper<radio_module>(nullptr, 5);
+    if (!com_lora->begin(com_config))
     {
-        Serial.println("RFM lora good");
+        Serial.println("Configuring LoRa failed");
+        return;
     }
-    else
-    {
-        Serial.println(status);
-    }
+    com_lora->test_transmit();
 }
 
 void int_LoRa_ranging(Ranging_Wrapper::Lora_Device lora_cfg)
@@ -130,7 +144,7 @@ void setup()
     SPI.begin();
     if (master_basestation)
     {
-        init_LoRa_main(com_config);
+        init_LoRa_main();
     }
     int_LoRa_ranging(ranging_device);
     Serial.println("base station setup done");
@@ -140,8 +154,10 @@ void loop()
 {
     if (transmiting_mode)
     {
+        // Serial.println("Transmit");
         if (Serial.available() > 0)
         {
+            // Serial.println("Listening to serial transmit");
             String incoming_msg = Serial.readString();
             if (incoming_msg != "")
             {
@@ -155,6 +171,30 @@ void loop()
                 else if (incoming_msg == "S")
                 {
                     send_main_lora(DATA_STOP_MSG);
+                    Serial.println("Switching to recieving mode");
+                    transmiting_mode = false;
+                }
+                else if (incoming_msg == "RD")
+                {
+                    send_main_lora(DATA_REQUEST_MSG);
+                    Serial.println("Switching to recieving mode");
+                    transmiting_mode = false;
+                }
+                else if (incoming_msg == "RR")
+                {
+                    send_main_lora(RANGING_REQUEST_MSG);
+                    Serial.println("Switching to recieving mode");
+                    transmiting_mode = false;
+                }
+                else if (incoming_msg == "M1")
+                {
+                    send_main_lora(TOGGLE_MOSFET_1_MSG);
+                    Serial.println("Switching to recieving mode");
+                    transmiting_mode = false;
+                }
+                else if (incoming_msg == "M2")
+                {
+                    send_main_lora(TOGGLE_MOSFET_2_MSG);
                     Serial.println("Switching to recieving mode");
                     transmiting_mode = false;
                 }
@@ -184,9 +224,22 @@ void loop()
     }
     else
     {
-        read_main_lora();
+        String msg = "";
+        float rssi;
+        float snr;
+        double frequency;
+
+        // Get data from LoRa
+        if (com_lora->receive(msg, rssi, snr, frequency))
+        {
+            bool status = com_lora->check_checksum(msg);
+            msg = "Checksum: " + String(status) + " | RSSi: " + rssi + " | SNR: " + snr + " | FREQ: " + String(frequency, 8) + " | MSG:/*" + msg + "," + String((int)rssi) + "," + String((int)snr) + "*/";
+            Serial.println(msg);
+        }
+
         if (Serial.available() > 0)
         {
+            Serial.println("Listening to serial transmit");
             String incoming_msg = Serial.readString();
             if (incoming_msg != "")
             {
@@ -198,12 +251,12 @@ void loop()
                 }
                 else
                 {
+                    transmiting_mode = true;
                     Serial.println("Unexpected input : " + incoming_msg);
                 }
             }
         }
     }
-
     /// enable raning slave
     if (ranging_lora.get_init_status())
     {

@@ -9,11 +9,11 @@ private:
     float _desired_temp; // in C
     
     const int _pwm_min = 0;
-    const int _pwm_max = 32;
+    const int _pwm_max = 1000;
 
     // PID coefficients
-    const float _Kp = 7.5;     // Proportional (Best between 5 and 15)
-    const float _Ki = 0.00001; // Integral (Best between 0.00008 and 0.00013)
+    const float _Kp = 10;     // Proportional (Best between 5 and 15)
+    const float _Ki = 0.000025; // Integral (Best between 0.00008 and 0.00013)
     const float _Kd = 10000;   // Derivative (Best between 5000 and 20000)
 
     // PID value limits
@@ -29,7 +29,7 @@ private:
 
     float _inner_temp = 0;
     float _heater_power = 0;
-    void set_heater_power(float heater_power_pwm);
+    void set_heater_power(int heater_power_pwm);
     void calculate_heater_power();
     void check_heater_power();
 

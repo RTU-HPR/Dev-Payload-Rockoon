@@ -5,6 +5,7 @@ void Temperature_Manager::update_heater_power(float inner_temp)
 {
     _inner_temp = inner_temp;
     calculate_heater_power();
+    //Serial.println("Update heater power with temp: " + String(inner_temp) + " | Heater power: " + String(_heater_power));
     set_heater_power(_heater_power);
 }
 
@@ -75,6 +76,12 @@ void Temperature_Manager::calculate_heater_power()
         _heater_power = constrain(_heater_power, _pwm_min, _pwm_max);
     }
 
+    // Update safe temp value to nearest rounded down integer, if temp exceeded safe temp and derivative term is becoming negative
+    if (_derivative_term < 0 && _inner_temp - _safe_temp > 1 && _safe_temp != _desired_temp)
+    {
+        _safe_temp = floor(_inner_temp);
+    }
+
     // Save last proportional term for future derivative term calculations
     _last_proportional_term = _proportional_term;
 
@@ -89,9 +96,8 @@ double Temperature_Manager::get_heater_power()
 }
 
 // heater PWM value
-void Temperature_Manager::set_heater_power(float heater_power_pwm)
+void Temperature_Manager::set_heater_power(int heater_power_pwm)
 {
-    pinMode(_heater_pin, OUTPUT_12MA);
     analogWrite(_heater_pin, heater_power_pwm);
 }
 
@@ -124,6 +130,8 @@ void Temperature_Manager::get_pid(float &p, float &i, float &d)
 Temperature_Manager::Temperature_Manager(int heater_pin, float desired_temp)
 {
     _heater_pin = heater_pin;
+    analogWriteRange(1000);
+    analogWriteFreq(100);
     _desired_temp = desired_temp;
     _safe_temp = _desired_temp - 5;
 }

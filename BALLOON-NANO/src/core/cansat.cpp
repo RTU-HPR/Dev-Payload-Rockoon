@@ -4,24 +4,7 @@
 // Initialize SPI/I2C/PC Serial/Hardware Serial communication
 void Cansat::init_all_com_bus(Config &config)
 {
-    SPI.setRX(config.SPI0_RX);
-    SPI.setTX(config.SPI0_TX);
-    SPI.setSCK(config.SPI0_SCK);
-    SPI.begin();
-
-    SPI1.setRX(config.SPI1_RX);
-    SPI1.setTX(config.SPI1_TX);
-    SPI1.setSCK(config.SPI1_SCK);
-    SPI1.begin();
-
-    Wire.setSCL(config.WIRE0_SCL);
-    Wire.setSDA(config.WIRE0_SDA);
-
-    // Wire1.setSCL(config.WIRE1_SCL);
-    // Wire1.setSDA(config.WIRE1_SDA);
-
     // Initialize PC serial
-    /*
     Serial.begin(config.PC_BAUDRATE);
     if (config.WAIT_PC)
     {
@@ -30,11 +13,17 @@ void Cansat::init_all_com_bus(Config &config)
             delay(500);
         }
     }
-    */
-    Serial1.setRX(config.SERIAL1_RX);
-    Serial1.setTX(config.SERIAL1_TX);
-    Serial1.setFIFOSize(256); // once had a problem of not reading serial properly but this seemed to fix it
-    Serial1.begin(config.SERIAL1_BAUDRATE);
+    
+    SPI.setRX(config.SPI0_RX);
+    SPI.setTX(config.SPI0_TX);
+    SPI.setSCK(config.SPI0_SCK);
+    SPI.begin();
+
+    // Not used
+    // SPI1.setRX(config.SPI1_RX);
+    // SPI1.setTX(config.SPI1_TX);
+    // SPI1.setSCK(config.SPI1_SCK);
+    // SPI1.begin();
 }
 
 // Read last state from SD card
@@ -43,6 +32,13 @@ void Cansat::read_last_state(Cansat &cansat)
     if (cansat.log._flash_initialized)
     {
         // Open file
+        if (!cansat.log._flash->exists(cansat.config.LAST_STATE_VARIABLE_FILE_NAME))
+        {
+            File file = cansat.log._flash->open(cansat.config.LAST_STATE_VARIABLE_FILE_NAME, "r+");
+            file.close();
+            return;
+        }
+
         File file = cansat.log._flash->open(cansat.config.LAST_STATE_VARIABLE_FILE_NAME, "r");
         if (!file)
         {
@@ -57,16 +53,17 @@ void Cansat::read_last_state(Cansat &cansat)
         {
             read_str += file.readString();
         }
+
         // Make a char array from the string
         int read_str_len = read_str.length() + 1;
         char char_array[read_str_len];
         read_str.toCharArray(char_array, read_str_len);
 
-        cansat.log.send_com_lora("Last state char array: " + String(char_array), cansat.config);
+        cansat.log.send_data("Last state char array: " + String(char_array), true, false, true);
 
         // Set the last state variables to the ones read from the file
         int result = sscanf(char_array,                                     // The char array to read from
-                            "%i,%i,%f,%f,%f,%i,%i,%i,%i,%i,%i,%i/n",     // The form the variables are separated in string
+                            "%i,%i,%f,%f,%f,%i,%i,%i,%i,%i,%i,%i/n",        // The form the variables are separated in string
                             &cansat.config.last_state_variables.last_state, // The values to update that correspond to the variable in string
                             &cansat.config.last_state_variables.last_log_file_index,
                             &cansat.config.last_state_variables.last_inner_temp,
@@ -91,26 +88,6 @@ void Cansat::recover_state_variables(Cansat &cansat)
     cansat.sensors.data.average_inner_temp = cansat.config.last_state_variables.last_inner_temp;
 }
 
-// Log initialization data to flash, after SD card is set up and files opened
-void Cansat::save_to_flash_after_init(Cansat &cansat)
-{
-    // Log the read last state variables
-    cansat.log.log_info_msg_to_flash("Last state: " + String(cansat.config.last_state_variables.last_state));
-    cansat.log.log_info_msg_to_flash("Last log file index: " + String(cansat.config.last_state_variables.last_log_file_index));
-    cansat.log.log_info_msg_to_flash("Last inner temp: " + String(cansat.config.last_state_variables.last_inner_temp));
-    cansat.log.log_info_msg_to_flash("Last integral term: " + String(cansat.config.last_state_variables.last_integral_term));
-    cansat.log.log_info_msg_to_flash("Last safe temperature: " + String(cansat.config.last_state_variables.last_safe_temp));
-
-    cansat.log.log_info_msg_to_flash("Outer baro failed: " + String(cansat.config.last_state_variables.outer_baro_failed));
-    cansat.log.log_info_msg_to_flash("Inner baro failed: " + String(cansat.config.last_state_variables.inner_baro_failed));
-    cansat.log.log_info_msg_to_flash("Inner temp probe failed: " + String(cansat.config.last_state_variables.inner_temp_probe_failed));
-    cansat.log.log_info_msg_to_flash("IMU failed: " + String(cansat.config.last_state_variables.imu_failed));
-    cansat.log.log_info_msg_to_flash("Outer thermistor failed: " + String(cansat.config.last_state_variables.outer_thermistor_failed));
-
-    cansat.log.log_info_msg_to_flash("Inner temp probe restarted: " + String(cansat.config.last_state_variables.inner_temp_probe_restarted));
-    cansat.log.log_info_msg_to_flash("IMU restarted: " + String(cansat.config.last_state_variables.imu_restarted));
-}
-
 // PUBLIC FUNCTIONS
 // Receive commands from LoRa or PC
 String Cansat::receive_command(Cansat &cansat)
@@ -119,7 +96,11 @@ String Cansat::receive_command(Cansat &cansat)
     String incoming_msg = "";
     float rssi;
     float snr;
-    cansat.log.receive_com_lora(incoming_msg, rssi, snr, cansat.config);
+    double frequency;
+
+    cansat.log.receive_com_lora(incoming_msg, rssi, snr, frequency);
+    cansat.sensors.data.last_frequency = frequency;
+
     if (Serial.available() > 0)
     {
         incoming_msg = Serial.readString();
@@ -129,12 +110,11 @@ String Cansat::receive_command(Cansat &cansat)
     if (incoming_msg != "")
     {
         incoming_msg.trim();
-        Serial.println(incoming_msg + ", " + String(rssi) + ", " + String(snr));
-        cansat.log.send_info("Payload received message: " + incoming_msg, cansat.config);
+        cansat.log.send_info("Payload received message: " + incoming_msg  + "," + String(rssi) + "," + String(snr), false, true, true);
     }
     // Return the message
     return incoming_msg;
-}   
+}
 
 // Write last state from SD card
 void Cansat::save_last_state(Cansat &cansat)
@@ -142,7 +122,7 @@ void Cansat::save_last_state(Cansat &cansat)
     if (cansat.log._flash_initialized)
     {
         // Open file
-        File file = cansat.log._flash->open(cansat.config.LAST_STATE_VARIABLE_FILE_NAME, "w");
+        File file = cansat.log._flash->open(cansat.config.LAST_STATE_VARIABLE_FILE_NAME, "w+");
         if (!file)
         {
             Serial.println("Failed opening file: " + String(config.LAST_STATE_VARIABLE_FILE_NAME));
@@ -195,7 +175,7 @@ void Cansat::restart(Cansat &cansat)
 void Cansat::check_if_should_restart(Cansat &cansat)
 {
     if (cansat.sensors._hard_reset_required)
-    {   
+    {
         // Save which sensor has failed
         if (!cansat.sensors._imu_initialized)
         {
@@ -206,9 +186,9 @@ void Cansat::check_if_should_restart(Cansat &cansat)
             cansat.config.last_state_variables.inner_temp_probe_failed = 1;
         }
         cansat.save_last_state(cansat);
-        
-        cansat.log.send_info("Hard reset initalized", cansat.config);
-        
+
+        cansat.log.send_info("Hard reset initalized");
+
         // Do a restart
         cansat.restart(cansat);
     }
@@ -217,17 +197,10 @@ void Cansat::check_if_should_restart(Cansat &cansat)
 // Main function that checks and runs appropriate state
 void Cansat::start_states(Cansat &cansat)
 {
-    // FOR DEBUGGING PURPOSES
-    // IT SHOULDN'T BE HERE, IT SHOULD ONLY BE IN INIT ALL COM BUS
-    Serial.begin(config.PC_BAUDRATE);
-    if (config.WAIT_PC)
-    {
-        while (!Serial)
-        {
-            delay(500);
-        }
-    }
-
+    // Set sensor power enable pin to output
+    pinMode(config.SENSOR_POWER_ENABLE_PIN, OUTPUT_12MA);
+    digitalWrite(config.SENSOR_POWER_ENABLE_PIN, HIGH);
+    
     // Initialize communications
     cansat.init_all_com_bus(cansat.config);
 
@@ -237,16 +210,15 @@ void Cansat::start_states(Cansat &cansat)
     // Read last state data
     read_last_state(cansat);
 
+    cansat.log.init_flash_files(cansat.config);
+
     // Set required variables from last state
     recover_state_variables(cansat);
-
-    // Open/create telemetry/info/error files
-    cansat.log.init_flash_files(cansat.config);
 
     // Check if Watchdog restart has happened
     if (watchdog_caused_reboot())
     {
-        cansat.log.send_info("Watchdog caused a reboot", cansat.config);
+        cansat.log.send_info("Watchdog caused a reboot");
     }
 
     // Save the current file index to last state
@@ -255,16 +227,16 @@ void Cansat::start_states(Cansat &cansat)
 
     // Check in which state should payload start in
     int last_state = cansat.config.last_state_variables.last_state;
-    cansat.log.send_info("Last state: " + String(last_state), cansat.config);
+    // cansat.log.send_info("Last state: " + String(last_state));
 
     // Enable Watchdog
-    watchdog_enable(cansat.config.WATCHDOG_TIMER, 1);
-    cansat.log.send_info("Watchdog is enabled with time: " + String(cansat.config.WATCHDOG_TIMER), cansat.config);
+    // watchdog_enable(cansat.config.WATCHDOG_TIMER, 1);
+    cansat.log.send_info("Watchdog is enabled with time: " + String(cansat.config.WATCHDOG_TIMER));
 
     // If ascent/descent state is not set, start in prepare state
     if (last_state == 0)
     {
-        cansat.log.send_info("No previous state. Starting from PREP state", cansat.config);
+        cansat.log.send_info("No previous state. Starting from PREP state");
         // Start prepare state
         current_state = State::PREP;
         prepare_state(cansat);
@@ -292,7 +264,7 @@ void Cansat::start_states(Cansat &cansat)
         // Set flag to know if a restart has happened
         _has_recovered_to_state = true;
 
-        cansat.log.send_info("Previous state ASCENT. Starting from ASCENT", cansat.config);
+        cansat.log.send_info("Previous state ASCENT. Starting from ASCENT");
 
         // Start ascent state
         current_state = State::ASCENT;
@@ -314,7 +286,7 @@ void Cansat::start_states(Cansat &cansat)
         // Set flag to know if a restart has happened
         _has_recovered_to_state = true;
 
-        cansat.log.send_info("Previous state DESCENT. Starting from DESCENT", cansat.config);
+        cansat.log.send_info("Previous state DESCENT. Starting from DESCENT");
 
         // Start descent state
         current_state = State::DESCENT;

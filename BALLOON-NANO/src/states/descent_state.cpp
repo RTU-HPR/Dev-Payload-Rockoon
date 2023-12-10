@@ -14,16 +14,11 @@ unsigned long mosfet_turnoff_time;
 // HELPER FUNCTIONS
 void send_data_descent(Cansat &cansat)
 {
-    // Print data to serial
-    cansat.log.log_telemetry_data_to_pc();
-    // Save data to telemetry file
-    cansat.log.log_telemetry_data();
-
     // Check if data should be sent over LoRa
     if (millis() - last_data_transmit_time_descent >= cansat.config.LORA_DATAPACKET_COOLDOWN_DESCENT)
     {
         // Send data by LoRa
-        cansat.log.transmit_data(cansat.config);
+        cansat.log.send_data(cansat.sensors.sendable_packet, cansat.sensors.loggable_packet, true, false, false);
         last_data_transmit_time_descent = millis();
     }
 }
@@ -56,7 +51,6 @@ bool descent_state_loop(Cansat &cansat)
     if (millis() - last_buzzer_state_change_time > cansat.config.BUZZER_INTERVAL)
     {
         buzzer_state = !buzzer_state;
-        cansat.sensors.set_buzzer(cansat.config, buzzer_state);
     }
 
     // Check for any commands
@@ -80,6 +74,8 @@ bool descent_state_loop(Cansat &cansat)
     // Send sensor data
     send_data_descent(cansat);
 
+    cansat.log.send_data(cansat.sensors.sendable_packet, cansat.sensors.loggable_packet, false, true, true);
+
     // Reset watchdog timer
     watchdog_update();
 
@@ -93,6 +89,7 @@ bool descent_state_loop(Cansat &cansat)
         cansat.config.last_state_variables.last_integral_term = cansat.sensors._temp_manager->_integral_term;
         cansat.config.last_state_variables.last_safe_temp = cansat.sensors._temp_manager->_safe_temp;
         cansat.save_last_state(cansat);
+        last_state_save_time_descent = millis();
     }
 
     // Check if should wait before next loop
@@ -107,6 +104,13 @@ bool descent_state_loop(Cansat &cansat)
 // Descent state setup
 void descent_state(Cansat &cansat)
 {
+    // DONT TOUCH THIS DELAY
+    // PLEASE PLEASE DONT
+    // VERY IMPORTANT
+    // LORA NO WORK WITHOUT IT
+    // DONT ASK WHY
+    // vvvvvvvv
+    delay(1000);
     state_start_time = millis();
  
     // If payload has recovered to descent state
@@ -116,12 +120,11 @@ void descent_state(Cansat &cansat)
         watchdog_update();
 
         // Init sensors
-        String status = String("Sensor status: ") + cansat.sensors.init(cansat.log, cansat.config);
+        cansat.sensors.init(cansat.log, cansat.config);
         // Reset watchdog timer
         watchdog_update();
 
-        cansat.log.send_info(status, cansat.config);
-        cansat.log.send_info("Reset done", cansat.config);
+        cansat.log.send_info("Reset done");
     }
 
     parachute_ejection_time = state_start_time + cansat.config.TIME_FROM_LAUNCH_TO_EJECT;
