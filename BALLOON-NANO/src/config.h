@@ -274,7 +274,7 @@ public:
     const String INFO_LOG_FILE_NAME_BASE_PATH = "/CANSAT_INFO_";
     const String ERROR_LOG_FILE_NAME_BASE_PATH = "/CANSAT_ERROR_";
 
-    const String TELEMETRY_HEADER = "gps_epoch_time,gps_lat,gps_lng,gps_height,gps_speed,gps_time_since_last,acc_x,acc_y,acc_z,gyro_x,gyro_y,gyro_z,r1_dist,r2_dist,r3_dist,r1_time_since,r2_time_since,r3_time_since,r_pos_lat,r_pos_lng,r_pos_alt,r_pos_time_since,inner_baro_pressure,outer_baro_pressure,avg_inner_temp,avg_outer_temp,heater_power,time_on,avg_battery_voltage,gps_heading,gps_pdop,gps_satellites,raw_inner_temp,raw_outer_temp_thermistor,raw_inner_temp_baro,raw_outer_temp_baro,raw_batt_voltage,raw_heater_current,avg_heater_current,p_term,i_term,d_term,target_temp,r1_time,r1_rssi,r1_snr,r1_f_error,r2_time,r2_rssi,r2_snr,r2_f_error,r3_time,r3_rssi,r3_snr,r3_f_error,last_frequency";
+    const String TELEMETRY_HEADER = "gps_epoch_time,gps_lat,gps_lng,gps_height,gps_speed,gps_time_since_last,acc_x,acc_y,acc_z,gyro_x,gyro_y,gyro_z,r1_dist,r2_dist,r3_dist,r1_time_since,r2_time_since,r3_time_since,r_pos_lat,r_pos_lng,r_pos_alt,r_pos_time_since,inner_baro_pressure,outer_baro_pressure,avg_inner_temp,avg_outer_temp,heater_power,time_on,avg_battery_voltage,outer_baro_altitude,outer_baro_speed,gps_heading,gps_pdop,gps_satellites,raw_inner_temp,raw_outer_temp_thermistor,raw_inner_temp_baro,raw_outer_temp_baro,raw_batt_voltage,raw_heater_current,avg_heater_current,p_term,i_term,d_term,target_temp,r1_time,r1_rssi,r1_snr,r1_f_error,r2_time,r2_rssi,r2_snr,r2_f_error,r3_time,r3_rssi,r3_snr,r3_f_error,last_frequency";
     const String INFO_HEADER = "time_on,info";
     const String ERROR_HEADER = "time_on,error";
 };
