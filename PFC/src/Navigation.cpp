@@ -2,16 +2,16 @@
 
 bool Navigation::beginGps(const Gps_Wrapper::Gps_Config_I2C &gps_config)
 {
-  _gps = new Gps_Wrapper(nullptr, "GPS");
+  _gps = Gps_Wrapper(nullptr, "GPS");
   unsigned long start = millis();
-  while (!_gps->begin(gps_config))
+  while (!_gps.begin(gps_config))
   {
     if (millis() - start > 10000)
     {
-      Serial.println("GPS begin failed, aborting");
+      Serial.println("GPS begin failed");
       return false;
     }
-    Serial.println("GPS begin failed, retrying");
+    //Serial.println("GPS begin failed, retrying");
   }
 
   return true;
@@ -19,7 +19,7 @@ bool Navigation::beginGps(const Gps_Wrapper::Gps_Config_I2C &gps_config)
 
 bool Navigation::beginRanging(const Ranging_Wrapper::Lora_Device &ranging_config, const Ranging_Wrapper::Mode &ranging_mode)
 {
-  String result = _ranging->init(ranging_mode, ranging_config);
+  String result = _ranging.init(ranging_mode, ranging_config);
   if (result == "")
   {
     ranging_initalized = true;
@@ -29,21 +29,18 @@ bool Navigation::beginRanging(const Ranging_Wrapper::Lora_Device &ranging_config
     Serial.println("Ranging initialization failed with error: " + result);
     return false;
   }
-
   navigation_data.ranging_position = Ranging_Wrapper::Position(0, 0, 0);
-
   return true;
 }
 
 bool Navigation::readGps(NAVIGATION_DATA &navigation_data)
 {
-  if (_gps->read(navigation_data.gps))
+  if (_gps.read(navigation_data.gps))
   {
     return true;
   }
   else
   {
-    Serial.println("GPS read failed");
     return false;
   }
 }
@@ -57,7 +54,7 @@ bool Navigation::readRanging(Config &config, NAVIGATION_DATA &navigation_data)
 
   Ranging_Wrapper::Ranging_Result result = {0, 0};
   bool move_to_next_slave = false;
-  if (_ranging->master_read(config.RANGING_SLAVES[_slave_index], result, config.RANGING_LORA_TIMEOUT))
+  if (_ranging.master_read(config.RANGING_SLAVES[_slave_index], result, config.RANGING_LORA_TIMEOUT))
   {
     // ranging data read and ranging for current slave started
     move_to_next_slave = true;
@@ -84,7 +81,7 @@ bool Navigation::readRanging(Config &config, NAVIGATION_DATA &navigation_data)
   else
   {
     Ranging_Wrapper::Position result;
-    if (_ranging->trilaterate_position(navigation_data.ranging, config.RANGING_SLAVES, result))
+    if (_ranging.trilaterate_position(navigation_data.ranging, config.RANGING_SLAVES, result))
     {
       navigation_data.ranging_position = result;
     }

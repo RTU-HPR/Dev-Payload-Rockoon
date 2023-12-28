@@ -16,14 +16,14 @@ public:
 
 private:
   /**
-   * @brief Pointer to the GPS object
+   * @brief GPS object
    */
-  Gps_Wrapper *_gps;
+  Gps_Wrapper _gps;
 
   /**
-   * @brief Pointer to the ranging object
+   * @brief Ranging object
    */
-  Ranging_Wrapper *_ranging;
+  Ranging_Wrapper _ranging;
   int _slave_index = 0;
   int _last_slave_index = 0;
 

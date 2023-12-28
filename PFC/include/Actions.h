@@ -19,8 +19,8 @@ class Actions
   bool sensorActionEnabled = true;
 
   void runNavigationAction(Navigation &navigation);
-  bool navigationActionEnabled = false;
+  bool navigationActionEnabled = true;
 
   void runLoggingAction(Logging &logging);
-  bool loggingActionEnabled = true;
+  bool loggingActionEnabled = false;
 };

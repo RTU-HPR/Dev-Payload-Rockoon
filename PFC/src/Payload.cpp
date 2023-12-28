@@ -66,15 +66,15 @@ void Payload::begin()
     Serial.println("Error initializing communication busses");
   }
 
-  // Initialize the SD card
-  if (!logging.begin(config))
-  {
-    Serial.println("Error initializing SD card");
-  }
-  else
-  {
-    Serial.println("SD card initialized successfully");
-  }
+  // // Initialize the SD card
+  // if (!logging.begin(config))
+  // {
+  //   Serial.println("Error initializing SD card");
+  // }
+  // else
+  // {
+  //   Serial.println("SD card initialized successfully");
+  // }
 
   // Enable sensor power
   pinMode(config.SENSOR_POWER_ENABLE_PIN, OUTPUT_12MA);
@@ -96,25 +96,6 @@ void Payload::begin()
     Serial.println("Radio initialized successfully");
   }
 
-  // // Initialise the navigation
-  // if (!navigation.beginGps(config.gps_config))
-  // {
-  //   Serial.println("Error initializing GPS");
-  // }
-  // else
-  // {
-  //   Serial.println("Navigation initialized successfully");
-  // }
-
-  // if (!navigation.beginRanging(config.ranging_device, config.ranging_mode))
-  // {
-  //   Serial.println("Error initializing ranging");
-  // }
-  // else
-  // {
-  //   Serial.println("Navigation initialized successfully");
-  // }
-
   // Initialise the sensors
   if (!sensors.begin(config))
   {
@@ -123,5 +104,24 @@ void Payload::begin()
   else
   {
     Serial.println("Sensors initialized successfully");
+  }
+
+  // Initialise the navigation
+  if (!navigation.beginGps(config.gps_config))
+  {
+    Serial.println("Error initializing navigation");
+  }
+  else
+  {
+    Serial.println("Navigation initialized successfully");
+  }
+
+  if (!navigation.beginRanging(config.ranging_device, config.ranging_mode))
+  {
+    Serial.println("Error initializing ranging");
+  }
+  else
+  {
+    Serial.println("Navigation initialized successfully");
   }
 }

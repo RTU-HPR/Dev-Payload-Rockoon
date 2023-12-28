@@ -59,7 +59,8 @@ public:
       {
           {.position = {0, 0, 0}, .address = 0x12345678},
           {.position = {0, 0, 0}, .address = 0xABCD9876},
-          {.position = {0, 0, 0}, .address = 0x9A8B7C6D}};
+          {.position = {0, 0, 0}, .address = 0x9A8B7C6D},
+  };
   Ranging_Wrapper::Mode ranging_mode = Ranging_Wrapper::Mode::MASTER;
   const int RANGING_LORA_TIMEOUT = 200;
   Ranging_Wrapper::Lora_Device ranging_device =
@@ -74,7 +75,8 @@ public:
           .SPREADING = 10,
           .CODING_RATE = 7,
           .SIGNAL_BW = 406.25,
-          .SPI = &SPI};
+          .SPI = &SPI,
+  };
 
   // GPS
   Gps_Wrapper::Gps_Config_I2C gps_config{
