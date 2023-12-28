@@ -11,5 +11,5 @@ void setup()
 
 void loop()
 {
-  payload.actions.runAllActions(payload.sensors, payload.navigation, payload.communication, payload.logging);
+  payload.actions.runAllActions(payload.sensors, payload.navigation, payload.communication, payload.logging, payload.config);
 }

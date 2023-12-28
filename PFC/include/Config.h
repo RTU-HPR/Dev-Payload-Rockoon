@@ -46,7 +46,7 @@ public:
       // .tx_enable = 0, // only needed if rf_switching = gpio
       .reset = 8,
       .sync_word = 0xF4,
-      .tx_power = 22,
+      .tx_power = 10,
       .spreading = 11,
       .coding_rate = 8,
       .signal_bw = 62.5,
@@ -236,8 +236,8 @@ public:
   const float HEATER_RESISTOR_VALUE = 1.1;
 
   // Parachute
-  const int PARACHUTE_MOSFET_1 = 19;
-  const int PARACHUTE_MOSFET_2 = 18; // mosfet 2
+  const int MOSFET_1 = 19;
+  const int MOSFET_2 = 18; // mosfet 2
 
   const String TELEMETRY_LOG_FILE_NAME_BASE_PATH = "/PFC_TELEMETRY_";
   const String INFO_LOG_FILE_NAME_BASE_PATH = "/PFC_INFO_";
@@ -247,5 +247,30 @@ public:
   const String INFO_HEADER = "time_on,info";
   const String ERROR_HEADER = "time_on,error";
 
+  // Actions
+  const int TIMED_ACTION_INITIAL_DELAY = 10000;
+  // Data send action interval
+  const int DATA_SEND_ACTION_INTERVAL = 15000;
+  // Ranging action interval is preemptive
+  // Ranging will run the defined interval before
+  // the data send action happens
+  // E.g. Ranging action will run 2 seconds before
+  // the data send function runs
+  const int RANGING_ACTION_PREEMPTIVE_INTERVAL = 2000;
+  // For safety purposes, to make sure that ranging is not run more often than it should be
+  const int RANGING_ACTION_SAFETY_INTERVAL = DATA_SEND_ACTION_INTERVAL - RANGING_ACTION_PREEMPTIVE_INTERVAL - 1000;
+
+  // Radio Callsign
   const String PFC_CALLSIGN = "rtu_vip_pfc";
+  
+  // Receiveable commands
+  const String PFC_PING = "PFC_PING";
+  const String PFC_DATA_REQUEST = "PFC_DATA_REQUEST";
+  const String PFC_RANGING_REQUEST = "PFC_RANGING_REQUEST";
+  const String PFC_MOSFET_1 = "PFC_MOSFET_1";
+  const String PFC_MOSFET_2 = "PFC_MOSFET_2";
+  const String PFC_STATUS = "PFC_STATUS";
+
+  // Sendable commands
+  const String PFC_PONG = "PFC_PONG";
 };

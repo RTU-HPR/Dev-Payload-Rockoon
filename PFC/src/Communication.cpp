@@ -28,51 +28,10 @@ void Communication::msgToUkhas(String &msg, Config &config)
 
 bool Communication::sendRadio(String msg)
 {
+  String packet = msg;
   // This will add the checksum, endline and dashstar characters ("*xxxx\n")
-  _radio->add_checksum(msg);
-  
-  // Send the message 
-  bool status = _radio->transmit(msg);
+  _radio->add_checksum(packet);
+  // Send the message
+  bool status = _radio->transmit(packet);
   return status;
-}
-
-bool Communication::receiveCommand(RECEIVED_MESSAGE_STRUCTURE &received)
-{
-  // Check for any messages from Radio
-  if (_radio->receive(received.msg, received.rssi, received.snr, received.frequency))
-  {
-    // Check if checksum matches
-    if (_radio->check_checksum(received.msg))
-    {
-      received.checksum_good = true;
-    }
-    else
-    {
-      received.checksum_good = false;
-    }
-
-    // Set the flags
-    received.processed = false;
-    received.radio_message = true;
-
-    return true;
-  }
-
-  // Check for any messages from PC
-  if (Serial.available() > 0)
-  {
-    // Read the message from the Serial port
-    received.msg = Serial.readString();
-    // Remove any line ending symbols
-    received.msg.trim();
-
-    // Set the flags
-    received.checksum_good = true;
-    received.processed = false;
-    received.radio_message = false;
-
-    return true;
-  }
-
-  return false;
 }

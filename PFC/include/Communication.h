@@ -5,25 +5,9 @@
 class Communication
 {
   private:
-    
+
   public:
     RadioLib_Wrapper<radio_module> *_radio;
-
-    /**
-     * @brief Structure to store received message from the Radio or PC
-    */
-    struct RECEIVED_MESSAGE_STRUCTURE
-    {
-      String msg;
-      float rssi;
-      float snr;
-      double frequency;
-      bool processed;
-      bool checksum_good;
-      bool radio_message;
-    };
-
-    RECEIVED_MESSAGE_STRUCTURE received;
 
     /**
      * @brief Initialise the Communication Radio
@@ -48,11 +32,4 @@ class Communication
      * @return Whether the message was sent successfully
     */
     bool sendRadio(String msg);
-
-    /**
-     * @brief Check for received commands from Radio or PC
-     * @param received The structure where to store the received message
-     * @return Whether a message was received
-    */
-    bool receiveCommand(RECEIVED_MESSAGE_STRUCTURE &received);
 };
