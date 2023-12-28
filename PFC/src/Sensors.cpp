@@ -11,59 +11,73 @@ bool Sensors::begin(Config &config)
   if (!beginPortExtender(config))
   {
     Serial.println("Port extender initialization failed!");
-    return false;
   }
-  Serial.println("Port extender initialization complete");
+  else
+  {
+    Serial.println("Port extender initialization complete");
+  }
 
   // Initialize MS56XX
   if (!beginOnBoardBaro(config))
   {
     Serial.println("Onboard barometer initialization failed!");
-    return false;
   }
-  Serial.println("Onboard barometer initialization complete");
+  else
+  {
+    Serial.println("Onboard barometer initialization complete");
+  }
 
   // Initialize IMU
   if (!beginImu(config))
   {
     Serial.println("IMU initialization failed!");
-    return false;
   }
-  Serial.println("IMU initialization complete");
+  else
+  {
+    Serial.println("IMU initialization complete");
+  }
 
   // Initialize thermistor
   if (!beginOutsideThermistor(config))
   {
     Serial.println("Thermistor initialization failed!");
-    return false;
   }
-  Serial.println("Thermistor initialization complete");
-
+  else
+  {
+    Serial.println("Thermistor initialization complete");
+  }
+  
   // Initialize battery voltage reader
   if (!beginBatteryVoltageReader(config))
   {
     Serial.println("Battery voltage reader initialization failed!");
-    return false;
   }
-  Serial.println("Battery voltage reader initialization complete");
+  else
+  {
+    Serial.println("Battery voltage reader initialization complete");
+  }
 
   // HEATED CONTAINER
   // Initialize container barometer
   if (!beginContainerBaro(config))
   {
     Serial.println("Container barometer initialization failed!");
-    return false;
   }
-  Serial.println("Container barometer initialization complete");
+  else
+  {
+
+    Serial.println("Container barometer initialization complete");
+  }
 
   // Initialize container temperature sensor
   if (!beginContainerTemperatureSensor(config))
   {
     Serial.println("Container temperature sensor initialization failed!");
-    return false;
   }
-  Serial.println("Container temperature sensor initialization complete");
-
+  else
+  {
+    Serial.println("Container temperature sensor initialization complete");
+  }
   Serial.println();
 
   return true;
@@ -84,10 +98,10 @@ void Sensors::readSensors()
   readOutsideThermistor();
 
   // Read container barometer
-  //readContainerBarometer();
+  // readContainerBarometer();
 
   // Read container temperature sensor
-  //readContainerTemperature();
+  // readContainerTemperature();
 }
 
 bool Sensors::beginPortExtender(Config &config)

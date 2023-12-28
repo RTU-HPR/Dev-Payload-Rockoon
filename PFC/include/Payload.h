@@ -4,6 +4,7 @@
 #include <Navigation.h>
 #include <Actions.h>
 #include <Communication.h>
+#include <Logging.h>
 
 class Payload
 {
@@ -19,6 +20,7 @@ class Payload
     Navigation navigation;
     Actions actions;
     Communication communication;
+    Logging logging;
 
     /**
      * @brief Initialise the PFC

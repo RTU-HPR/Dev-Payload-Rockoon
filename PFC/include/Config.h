@@ -19,6 +19,7 @@
 #include <RadioLib_wrapper.h>
 #include <ranging_wrapper.h>
 #include <Gps_Wrapper.h>
+#include <Sd_card_wrapper.h>
 
 // Our sensor libaries
 #include <MS56XX.h>
@@ -87,6 +88,21 @@ public:
       },
       .wire = &Wire,
       .i2c_address = 0x42, // Default
+  };
+
+  SD_Card_Wrapper::Config sd_card_config = {
+      // spi bus
+      .spi_bus = &SPI,
+      .cs_pin = 9,
+      .data_file_path_base = "/PFC_TELEMETRY_",
+      .info_file_path_base = "/PFC_INFO_",
+      .error_file_path_base = "/PFC_ERROR_",
+      .config_file_path = "/PFC_CONFIG",
+      .data_file_header = "telemetry",
+      .info_file_header = "info",
+      .error_file_header = "error",
+      .config_file_header = "config",
+      .open_last_files = false,
   };
 
   // PCF8575 Port extender

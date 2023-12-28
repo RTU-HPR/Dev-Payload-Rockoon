@@ -66,6 +66,16 @@ void Payload::begin()
     Serial.println("Error initializing communication busses");
   }
 
+  // Initialize the SD card
+  if (!logging.begin(config))
+  {
+    Serial.println("Error initializing SD card");
+  }
+  else
+  {
+    Serial.println("SD card initialized successfully");
+  }
+
   // Enable sensor power
   pinMode(config.SENSOR_POWER_ENABLE_PIN, OUTPUT_12MA);
   digitalWrite(config.SENSOR_POWER_ENABLE_PIN, HIGH);
