@@ -2,6 +2,8 @@
 
 bool Payload::initCommunicationBusses()
 {
+  bool success = true;
+  
   // Wire0
   if (Wire.setSCL(config.WIRE0_SCL) && Wire.setSDA(config.WIRE0_SDA))
   {
@@ -11,7 +13,7 @@ bool Payload::initCommunicationBusses()
   else
   {
     Serial.println("Wire0 communication bus failed to initialize");
-    return false;
+    success = false;
   }
 
   // Wire1
@@ -23,7 +25,7 @@ bool Payload::initCommunicationBusses()
   else
   {
     Serial.println("Wire1 communication bus failed to initialize");
-    return false;
+    success = false;
   }
 
   // SPI
@@ -35,11 +37,10 @@ bool Payload::initCommunicationBusses()
   else
   {
     Serial.println("SPI0 communication bus failed to initialize");
-    return false;
+    success = false;
   }
 
-  // All communication busses were successfully initialised
-  return true;
+  return success;
 }
 
 void Payload::begin()

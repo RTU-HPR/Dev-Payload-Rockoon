@@ -2,6 +2,7 @@
 
 bool Sensors::begin(Config &config)
 {
+  bool success = true;
   // Change analogRead resolution
   // This is needed for higher accuracy battery voltage and thermistor readings
   analogReadResolution(12);
@@ -11,6 +12,7 @@ bool Sensors::begin(Config &config)
   if (!beginPortExtender(config))
   {
     Serial.println("Port extender initialization failed!");
+    success = false;
   }
   else
   {
@@ -21,6 +23,7 @@ bool Sensors::begin(Config &config)
   if (!beginOnBoardBaro(config))
   {
     Serial.println("Onboard barometer initialization failed!");
+    success = false;
   }
   else
   {
@@ -31,6 +34,7 @@ bool Sensors::begin(Config &config)
   if (!beginImu(config))
   {
     Serial.println("IMU initialization failed!");
+    success = false;
   }
   else
   {
@@ -41,6 +45,7 @@ bool Sensors::begin(Config &config)
   if (!beginOutsideThermistor(config))
   {
     Serial.println("Thermistor initialization failed!");
+    success = false;
   }
   else
   {
@@ -51,6 +56,7 @@ bool Sensors::begin(Config &config)
   if (!beginBatteryVoltageReader(config))
   {
     Serial.println("Battery voltage reader initialization failed!");
+    success = false;
   }
   else
   {
@@ -62,6 +68,7 @@ bool Sensors::begin(Config &config)
   if (!beginContainerBaro(config))
   {
     Serial.println("Container barometer initialization failed!");
+    // success = false; // Disabled for now, since the sensor is not connected
   }
   else
   {
@@ -73,6 +80,7 @@ bool Sensors::begin(Config &config)
   if (!beginContainerTemperatureSensor(config))
   {
     Serial.println("Container temperature sensor initialization failed!");
+    // success = false; // Disabled for now, since the sensor is not connected
   }
   else
   {
@@ -80,7 +88,7 @@ bool Sensors::begin(Config &config)
   }
   Serial.println();
 
-  return true;
+  return success;
 }
 
 void Sensors::readSensors()
