@@ -92,6 +92,27 @@ public:
       .i2c_address = 0x42, // Default
   };
 
+  // SD card
+  String TELMETRY_FILE_HEADER = "index,time,gps_lat,gps_lng,gps_altitude,outside_temperature,gps_satellites,pressure,gps_speed,baro_altitude,acc_x,acc_y,acc_z,acc_heading,acc_pitch,acc_roll,gyro_x,gyro_y,gyro_z,imu_temp,onboard_temp,container_temp,container_temp_baro,container_pressure,battery_voltage,gps_epoch,gps_heading,gps_pdop,r1_distance,r1_ferror,r1_rssi,r1_snr,r1_time,r2_distance,r2_ferror,r2_rssi,r2_snr,r2_time,r3_distance,r3_ferror,r3_rssi,r3_snr,r3_time,ranging_lat,ranging_lng,ranging_altitude,time_on_ms";
+  String INFO_FILE_HEADER = "time,info";
+  String ERROR_FILE_HEADER = "time,error";
+  String CONFIG_FILE_HEADER = "descent_flag,remaining_descent_time,parachutes_deployed_flag,heater_control_flag";
+
+  struct Config_File_Values
+  {
+    int descent_flag;
+    long remaining_descent_time;
+    int parachutes_deployed_flag;
+    int heater_control_flag;
+  };
+
+  Config_File_Values config_file_values = {
+      .descent_flag = 0,
+      .remaining_descent_time = -1,
+      .parachutes_deployed_flag = 0,
+      .heater_control_flag = 0,
+  };
+
   SD_Card_Wrapper::Config sd_card_config = {
       // spi bus
       .spi_bus = &SPI,
@@ -100,11 +121,10 @@ public:
       .info_file_path_base = "/PFC_INFO_",
       .error_file_path_base = "/PFC_ERROR_",
       .config_file_path = "/PFC_CONFIG",
-      .data_file_header = "telemetry",
-      .info_file_header = "info",
-      .error_file_header = "error",
-      .config_file_header = "config",
-      .open_last_files = false,
+      .data_file_header = TELMETRY_FILE_HEADER,
+      .info_file_header = INFO_FILE_HEADER,
+      .error_file_header = ERROR_FILE_HEADER,
+      .config_file_header = CONFIG_FILE_HEADER,
   };
 
   // PCF8575 Port extender

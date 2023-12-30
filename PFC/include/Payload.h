@@ -14,6 +14,8 @@ class Payload
     */
     bool initCommunicationBusses();
 
+    String errorString = "";
+    
   public:
     Config config;
     Sensors sensors;

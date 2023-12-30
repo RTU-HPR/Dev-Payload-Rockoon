@@ -28,10 +28,24 @@ void Communication::msgToUkhas(String &msg, Config &config)
 
 bool Communication::sendRadio(String msg)
 {
+  if (!_radio->get_initialized())
+  {
+    return false;
+  }
+
   String packet = msg;
   // This will add the checksum, endline and dashstar characters ("*xxxx\n")
   _radio->add_checksum(packet);
   // Send the message
   bool status = _radio->transmit(packet);
   return status;
+}
+
+bool Communication::sendError(String errorString)
+{
+  // Add the error prefix to the error string
+  errorString = "PFC ERROR: " + errorString;
+
+  // Send the error message
+  return sendRadio(errorString);
 }

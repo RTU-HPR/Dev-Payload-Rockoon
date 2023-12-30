@@ -5,12 +5,17 @@
 class Logging
 {
 private:
-  SD_Card_Wrapper sd_card_wrapper;
+  SD_Card_Wrapper sd_card_wrapper = SD_Card_Wrapper(nullptr, "SD Card");;
+
+  static const int CONFIG_FILE_VARIABLE_COUNT = 4;
+  void writeConfig(Config &config);
+  void parseString(String &input, String *values, size_t maxSize);
 
 public:
   bool begin(Config &config);
+  bool readConfig(Config &config);
 
-  bool writeTelemetry(String data);
-  bool writeInfo(String data);
-  bool writeError(String data);
+  bool writeTelemetry(String &data);
+  bool writeInfo(String &data);
+  bool writeError(String &data);
 };

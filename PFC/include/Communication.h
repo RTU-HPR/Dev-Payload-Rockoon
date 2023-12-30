@@ -32,4 +32,6 @@ class Communication
      * @return Whether the message was sent successfully
     */
     bool sendRadio(String msg);
+
+    bool sendError(String errorString);
 };

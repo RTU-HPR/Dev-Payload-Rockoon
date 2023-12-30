@@ -26,11 +26,11 @@ private:
   bool gpsActionEnabled = true;
 
   void runLoggingAction(Logging &logging, Navigation &navigation, Sensors &sensors);
-  bool loggingActionEnabled = false;
+  bool loggingActionEnabled = true;
 
   // Timed actions
   void runDataSendAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config);
-  bool dataSendActionEnabled = false;
+  bool dataSendActionEnabled = true;
   unsigned long lastDataSendActionMillis = 0;
 
   void runRangingAction(Navigation &navigation, Config &config);

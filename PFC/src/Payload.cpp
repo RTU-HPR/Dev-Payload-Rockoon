@@ -12,7 +12,8 @@ bool Payload::initCommunicationBusses()
   }
   else
   {
-    Serial.println("Wire0 communication bus failed to initialize");
+    
+    errorString =+ "Wire0 fail | ";
     success = false;
   }
 
@@ -24,7 +25,7 @@ bool Payload::initCommunicationBusses()
   }
   else
   {
-    Serial.println("Wire1 communication bus failed to initialize");
+    errorString =+ "Wire1 fail | ";
     success = false;
   }
 
@@ -36,7 +37,7 @@ bool Payload::initCommunicationBusses()
   }
   else
   {
-    Serial.println("SPI0 communication bus failed to initialize");
+    errorString =+ "SPI0 fail | ";
     success = false;
   }
 
@@ -64,40 +65,56 @@ void Payload::begin()
   }
   else
   {
-    Serial.println("Error initializing communication busses");
+    Serial.println("Error in initializing communication busses");
   }
-
-  // // Initialize the SD card
-  // if (!logging.begin(config))
-  // {
-  //   Serial.println("Error initializing SD card");
-  // }
-  // else
-  // {
-  //   Serial.println("SD card initialized successfully");
-  // }
 
   // Enable sensor power
   pinMode(config.SENSOR_POWER_ENABLE_PIN, OUTPUT_12MA);
   digitalWrite(config.SENSOR_POWER_ENABLE_PIN, HIGH);
   Serial.println("Sensor power enabled");
 
+  // Initialize the SD card
+  if (!logging.begin(config))
+  {
+    errorString =+ "SD card error | ";
+  }
+  else
+  {
+    Serial.println("SD card initialized successfully");
+
+    // Read config file
+    if (!logging.readConfig(config))
+    {
+      errorString =+ "New config file created | ";
+    }
+    else
+    {
+      Serial.println("Config file read successfully");
+    }
+  }
+
   // Initialise the radio
   if (!communication.beginRadio(config))
   {
-    // If the radio fails to initialize, stop further execution
-    while (true)
-    {
-      Serial.println("Error initializing radio");
-      delay(1000);
-    }
+    errorString =+ "Radio error | ";
   }
   else
   {
     Serial.println("Radio initialized successfully");
   }
 
-  // Initialise the sensors
+  Serial.println();
+  
+  // Send inital error string
+  if (errorString != "")
+  {
+    Serial.println("INITAL ERRORS: " + errorString);
+    Serial.println();
+    logging.writeError(errorString);
+    communication.sendError(errorString);
+  }
+
+  // Initialise all sensors
   if (!sensors.begin(config))
   {
     Serial.println("Error initializing sensors");
@@ -107,16 +124,17 @@ void Payload::begin()
     Serial.println("Sensors initialized successfully");
   }
 
-  // Initialise the navigation
+  // Initialise GPS
   if (!navigation.beginGps(config.gps_config))
   {
-    Serial.println("Error initializing navigation");
+    Serial.println("Error initializing GPS");
   }
   else
   {
-    Serial.println("Navigation initialized successfully");
+    Serial.println("GPS initialized successfully");
   }
 
+  // Initialise ranging
   if (!navigation.beginRanging(config.ranging_device, config.ranging_mode))
   {
     Serial.println("Error initializing ranging");

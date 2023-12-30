@@ -1,40 +1,57 @@
 #include <Actions.h>
 #include <Config.h>
 
+//unsigned long last_time_1 = 0;
+//unsigned long last_time_2 = 0;
+
 void Actions::runAllActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config)
 {
+  // last_time_1 = millis();
   // Receive commands, read sensors and gps, log data to sd card
   runContinousActions(sensors, navigation, communication, logging, config);
-
+  // Serial.println("Continous actions time: " + String(millis() - last_time_1) + "ms");
   // Do ranging and send telemetry data
+  // last_time_1 = millis();
   runTimedActions(sensors, navigation, communication, config);
+  // Serial.println("Timed actions time: " + String(millis() - last_time_1) + "ms");
 
   // Do actions requested by a command
+  // last_time_1 = millis();
   runRequestedActions(sensors, navigation, communication, config);
+  // Serial.println("Requested actions time: " + String(millis() - last_time_1) + "ms");
+
 }
 
 void Actions::runContinousActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config)
 {
+  // last_time_2 = millis();
   // Run the command receive action
   if (commandReceiveActionEnabled)
   {
     runCommandReceiveAction(communication, config);
   }
+  // Serial.println("Command receive action time: " + String(millis() - last_time_2) + "ms");
+  // last_time_2 = millis();
   // Run the sensor action
   if (sensorActionEnabled)
   {
     runSensorAction(sensors);
   }
+  // Serial.println("Sensor action time: " + String(millis() - last_time_2) + "ms");
+  // last_time_2 = millis();
   // Run the navigation action
   if (gpsActionEnabled)
   {
     runGpsAction(navigation);
   }
+  // Serial.println("GPS action time: " + String(millis() - last_time_2) + "ms");
+  // last_time_2 = millis();
   // Run the logging action
   if (loggingActionEnabled)
   {
     runLoggingAction(logging, navigation, sensors);
   }
+  // Serial.println("Logging action time: " + String(millis() - last_time_2) + "ms");
 }
 
 void Actions::runTimedActions(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config)
@@ -46,18 +63,46 @@ void Actions::runTimedActions(Sensors &sensors, Navigation &navigation, Communic
   }
 
   // Run the ranging the set time before data send action
-  if (rangingSendActionEnabled && (millis() - lastRangingActionMillis >= config.RANGING_ACTION_SAFETY_INTERVAL) && (millis() - (lastDataSendActionMillis - config.RANGING_ACTION_PREEMPTIVE_INTERVAL) >= config.DATA_SEND_ACTION_INTERVAL))
+  if (rangingSendActionEnabled)
   {
-    runRangingAction(navigation, config);
-    lastRangingActionMillis = millis();
+    if (millis() - lastRangingActionMillis >= config.RANGING_ACTION_SAFETY_INTERVAL)
+    {
+      if (millis() - lastDataSendActionMillis >= config.DATA_SEND_ACTION_INTERVAL - config.RANGING_ACTION_PREEMPTIVE_INTERVAL)
+      {
+        runRangingAction(navigation, config);
+        lastRangingActionMillis = millis();
+      }
+    }
   }
 
   // Using gps time and millis for redundancy purposes
   // Run the data send action, if it is enabled, GPS secoconds are dividiable by 15 or atleast 15,5 seconds have passed since the last transmit
-  if (dataSendActionEnabled && ((navigation.navigation_data.gps.second % 15 == 0) || (millis() - (lastDataSendActionMillis + 500) >= config.DATA_SEND_ACTION_INTERVAL)))
+  if (dataSendActionEnabled)
   {
-    runDataSendAction(sensors, navigation, communication, config);
-    lastDataSendActionMillis = millis();
+    bool shouldSend = false;
+    if (navigation.navigation_data.gps.epoch_time != 0)
+    {
+      Serial.println("Epoch time is not 0");
+      if (navigation.navigation_data.gps.second % 15 == 0 || millis() - lastDataSendActionMillis >= config.DATA_SEND_ACTION_INTERVAL + 500)
+      {
+        Serial.println("Seconds are dividiable by 15 or atleast 15,5 seconds have passed since the last transmit");
+        Serial.println("Seconds: " + String(navigation.navigation_data.gps.second));
+        Serial.println("Millis: " + String(millis() - lastDataSendActionMillis));
+        shouldSend = true;
+      }
+    }
+    else if (millis() - lastDataSendActionMillis >= config.DATA_SEND_ACTION_INTERVAL + 500)
+    {
+      Serial.println("Time since last data send action is greater than the interval + 500ms");
+      Serial.println("Millis: " + String(millis() - lastDataSendActionMillis));
+      shouldSend = true;
+    }
+    if (shouldSend)
+    {
+      Serial.println("Sending data");
+      runDataSendAction(sensors, navigation, communication, config);
+      lastDataSendActionMillis = millis();
+    }
   }
 }
 
@@ -184,6 +229,7 @@ void Actions::runLoggingAction(Logging &logging, Navigation &navigation, Sensors
 {
   // Log the data to the sd card
   String packet = createLoggablePacket(sensors, navigation);
+
   logging.writeTelemetry(packet);
 }
 
@@ -273,6 +319,7 @@ String Actions::createSendablePacket(Sensors &sensors, Navigation &navigation)
 String Actions::createLoggablePacket(Sensors &sensors, Navigation &navigation)
 {
   String packet = "";
+  // UKHAS
   packet += String(loggable_packed_id);
   packet += ",";
   packet += String(navigation.navigation_data.gps.hour);
@@ -296,7 +343,93 @@ String Actions::createLoggablePacket(Sensors &sensors, Navigation &navigation)
   packet += String(navigation.navigation_data.gps.speed, 2);
   packet += ",";
   packet += String(sensors.data.onBoardBaro.altitude, 2);
+  // CUSTOM
+  // IMU
+  packet += ",";
+  packet += String(sensors.data.imu.accel.acceleration.x, 4);
+  packet += ",";
+  packet += String(sensors.data.imu.accel.acceleration.y, 4);
+  packet += ",";
+  packet += String(sensors.data.imu.accel.acceleration.z, 4);
+  packet += ",";
+  packet += String(sensors.data.imu.accel.acceleration.heading, 3);
+  packet += ",";
+  packet += String(sensors.data.imu.accel.acceleration.pitch, 3);
+  packet += ",";
+  packet += String(sensors.data.imu.accel.acceleration.roll, 3);
+  packet += ",";
+  packet += String(sensors.data.imu.gyro.gyro.x, 4);
+  packet += ",";
+  packet += String(sensors.data.imu.gyro.gyro.y, 4);
+  packet += ",";
+  packet += String(sensors.data.imu.gyro.gyro.z, 4);
+  packet += ",";
+  packet += String(sensors.data.imu.temp.temperature, 2);
+  // MS56XX
+  packet += ",";
+  packet += String(sensors.data.onBoardBaro.temperature, 2);
+  // Container temperature
+  packet += ",";
+  packet += String(sensors.data.containerTemperature.temperature, 2);
+  // Container baro
+  packet += ",";
+  packet += String(sensors.data.containerBaro.temperature, 2);
+  packet += ",";
+  packet += String(sensors.data.containerBaro.pressure);
+  packet += ",";
+  // Battery
+  packet += String(sensors.data.battery.voltage, 2);
+  packet += ",";
+  // GPS
+  packet += String(navigation.navigation_data.gps.epoch_time);
+  packet += ",";
+  packet += String(navigation.navigation_data.gps.heading);
+  packet += ",";
+  packet += String(navigation.navigation_data.gps.pdop);
+  // Ranging
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging[0].distance, 2);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging[0].f_error, 2);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging[0].rssi, 2);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging[0].snr, 2);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging[0].time, 2);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging[1].distance, 2);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging[1].f_error, 2);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging[1].rssi, 2);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging[1].snr, 2);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging[1].time, 2);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging[2].distance, 2);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging[2].f_error, 2);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging[2].rssi, 2);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging[2].snr, 2);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging[2].time, 2);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging_position.lat, 7);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging_position.lng, 7);
+  packet += ",";
+  packet += String(navigation.navigation_data.ranging_position.height, 2);
+  packet += ",";
+  // MISC
+  packet += String(millis());
+  packet += ",";
+  packet += String(rp2040.getUsedHeap());
 
+  
   loggable_packed_id++;
 
   return packet;
