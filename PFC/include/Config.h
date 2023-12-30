@@ -93,7 +93,7 @@ public:
   };
 
   // SD card
-  String TELMETRY_FILE_HEADER = "index,time,gps_lat,gps_lng,gps_altitude,outside_temperature,gps_satellites,pressure,gps_speed,baro_altitude,acc_x,acc_y,acc_z,acc_heading,acc_pitch,acc_roll,gyro_x,gyro_y,gyro_z,imu_temp,onboard_temp,container_temp,container_temp_baro,container_pressure,battery_voltage,gps_epoch,gps_heading,gps_pdop,r1_distance,r1_ferror,r1_rssi,r1_snr,r1_time,r2_distance,r2_ferror,r2_rssi,r2_snr,r2_time,r3_distance,r3_ferror,r3_rssi,r3_snr,r3_time,ranging_lat,ranging_lng,ranging_altitude,time_on_ms";
+  String TELMETRY_FILE_HEADER = "index,time,gps_lat,gps_lng,gps_altitude,outside_temperature,gps_satellites,pressure,gps_speed,baro_altitude,acc_x,acc_y,acc_z,acc_heading,acc_pitch,acc_roll,gyro_x,gyro_y,gyro_z,imu_temp,onboard_temp,container_temp,container_temp_baro,container_pressure,battery_voltage,gps_epoch,gps_heading,gps_pdop,r1_distance,r1_ferror,r1_rssi,r1_snr,r1_time,r2_distance,r2_ferror,r2_rssi,r2_snr,r2_time,r3_distance,r3_ferror,r3_rssi,r3_snr,r3_time,ranging_lat,ranging_lng,ranging_altitude,time_on_ms,loop_time";
   String INFO_FILE_HEADER = "time,info";
   String ERROR_FILE_HEADER = "time,error";
   String CONFIG_FILE_HEADER = "descent_flag,remaining_descent_time,parachutes_deployed_flag,heater_control_flag";
