@@ -21,7 +21,6 @@ SD_Card_Wrapper::Config sd_card_config = {
     .info_file_header = "index, time, info",
     .error_file_header = "index, time, error",
     .config_file_header = "rx, tx, sck, cs",
-    .open_last_files = true,
 };
 
 void init_sd()
