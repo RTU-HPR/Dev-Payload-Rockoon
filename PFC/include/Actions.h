@@ -5,6 +5,9 @@
 #include <Navigation.h>
 #include <Logging.h>
 
+// Get the global loop time variable
+extern int loopTime;
+
 class Actions
 {
 private:

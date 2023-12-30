@@ -2,7 +2,10 @@
 
 Payload payload;
 
-unsigned long last_time = 0;
+// Performance monitoring
+unsigned long lastLoopMillis = 0;
+extern int loopTime; // Set as global variable
+int loopTime = 0;
 
 void setup()
 {
@@ -26,7 +29,7 @@ void setup()
 
 void loop()
 {
-  // last_time = millis();
+  lastLoopMillis = millis();
   payload.actions.runAllActions(payload.sensors, payload.navigation, payload.communication, payload.logging, payload.config);
-  // Serial.println(String(millis() - last_time));
+  loopTime = millis() - lastLoopMillis;
 }

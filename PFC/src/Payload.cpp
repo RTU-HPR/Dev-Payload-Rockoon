@@ -13,7 +13,7 @@ bool Payload::initCommunicationBusses()
   else
   {
     
-    errorString =+ "Wire0 fail | ";
+    errorString =+ "Wire0 begin fail | ";
     success = false;
   }
 
@@ -25,7 +25,7 @@ bool Payload::initCommunicationBusses()
   }
   else
   {
-    errorString =+ "Wire1 fail | ";
+    errorString =+ "Wire1 begin fail | ";
     success = false;
   }
 
@@ -37,7 +37,7 @@ bool Payload::initCommunicationBusses()
   }
   else
   {
-    errorString =+ "SPI0 fail | ";
+    errorString =+ "SPI0 begin fail | ";
     success = false;
   }
 
@@ -76,7 +76,7 @@ void Payload::begin()
   // Initialize the SD card
   if (!logging.begin(config))
   {
-    errorString =+ "SD card error | ";
+    errorString =+ "SD begin fail | ";
   }
   else
   {
@@ -96,7 +96,7 @@ void Payload::begin()
   // Initialise the radio
   if (!communication.beginRadio(config))
   {
-    errorString =+ "Radio error | ";
+    errorString =+ "Radio begin fail | ";
   }
   else
   {
@@ -124,10 +124,22 @@ void Payload::begin()
     Serial.println("Sensors initialized successfully");
   }
 
+  // Send inital error string
+  if (sensors.sensorErrorString != "")
+  {
+    Serial.println("SENSOR ERRORS: " + errorString);
+    Serial.println();
+    logging.writeError(errorString);
+    communication.sendError(errorString);
+  }
+
   // Initialise GPS
   if (!navigation.beginGps(config.gps_config))
   {
-    Serial.println("Error initializing GPS");
+    String error = "GPS begin fail";
+    Serial.println(error);
+    logging.writeError(error);
+    communication.sendError(error);
   }
   else
   {
@@ -137,10 +149,15 @@ void Payload::begin()
   // Initialise ranging
   if (!navigation.beginRanging(config.ranging_device, config.ranging_mode))
   {
-    Serial.println("Error initializing ranging");
+    String error = "Ranging begin fail";
+    Serial.println(error);
+    logging.writeError(error);
+    communication.sendError(error);
   }
   else
   {
     Serial.println("Navigation initialized successfully");
   }
+  
+  Serial.println();
 }

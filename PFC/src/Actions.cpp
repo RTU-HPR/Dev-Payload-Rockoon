@@ -428,7 +428,8 @@ String Actions::createLoggablePacket(Sensors &sensors, Navigation &navigation)
   packet += String(millis());
   packet += ",";
   packet += String(rp2040.getUsedHeap());
-
+  packet += ",";
+  packet += String(loopTime);
   
   loggable_packed_id++;
 

@@ -82,6 +82,8 @@ private:
   };
 
 public:
+  String sensorErrorString = "";
+  
   /**
    * @brief Structure to store all sensor data
    */

@@ -11,7 +11,7 @@ bool Sensors::begin(Config &config)
   // Initialize port extender
   if (!beginPortExtender(config))
   {
-    Serial.println("Port extender initialization failed!");
+    sensorErrorString += "Port extender begin fail | ";
     success = false;
   }
   else
@@ -22,7 +22,7 @@ bool Sensors::begin(Config &config)
   // Initialize MS56XX
   if (!beginOnBoardBaro(config))
   {
-    Serial.println("Onboard barometer initialization failed!");
+    sensorErrorString += "Onboard barometer begin fail | ";
     success = false;
   }
   else
@@ -33,7 +33,7 @@ bool Sensors::begin(Config &config)
   // Initialize IMU
   if (!beginImu(config))
   {
-    Serial.println("IMU initialization failed!");
+    sensorErrorString += "IMU begin fail | ";
     success = false;
   }
   else
@@ -44,7 +44,7 @@ bool Sensors::begin(Config &config)
   // Initialize thermistor
   if (!beginOutsideThermistor(config))
   {
-    Serial.println("Thermistor initialization failed!");
+    sensorErrorString += "Thermistor begin fail | ";
     success = false;
   }
   else
@@ -55,7 +55,7 @@ bool Sensors::begin(Config &config)
   // Initialize battery voltage reader
   if (!beginBatteryVoltageReader(config))
   {
-    Serial.println("Battery voltage reader initialization failed!");
+    sensorErrorString += "Voltage sense begin fail | ";
     success = false;
   }
   else
@@ -67,19 +67,18 @@ bool Sensors::begin(Config &config)
   // Initialize container barometer
   if (!beginContainerBaro(config))
   {
-    Serial.println("Container barometer initialization failed!");
+    // sensorErrorString += "Container barometer begin fail | ";
     // success = false; // Disabled for now, since the sensor is not connected
   }
   else
   {
-
     Serial.println("Container barometer initialization complete");
   }
 
   // Initialize container temperature sensor
   if (!beginContainerTemperatureSensor(config))
   {
-    Serial.println("Container temperature sensor initialization failed!");
+    // sensorErrorString += "Container temperature begin fail | ";
     // success = false; // Disabled for now, since the sensor is not connected
   }
   else
