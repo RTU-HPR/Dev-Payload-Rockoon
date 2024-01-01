@@ -108,13 +108,9 @@ void Actions::runTimedActions(Sensors &sensors, Navigation &navigation, Communic
 
 void Actions::runRequestedActions(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config)
 {
-  if (pongActionEnabled)
-  {
-    runPongAction(communication, config);
-  }
   if (statusActionEnabled)
   {
-    runStatusAction(communication, config);
+    runStatusAction(sensors, navigation, communication, config);
   }
   if (mosfet1ActionEnabled)
   {
@@ -179,21 +175,9 @@ void Actions::runCommandReceiveAction(Communication &communication, Config &conf
     Serial.println(msg);
 
     // Set the action flag according to the received command
-    if (msg == config.PFC_PING)
-    {
-      pongActionEnabled = true;
-    }
-    else if (msg == config.PFC_STATUS)
+    if (msg == config.PFC_STATUS_REQUEST)
     {
       statusActionEnabled = true;
-    }
-    else if (msg == config.PFC_MOSFET_1)
-    {
-      mosfet1ActionEnabled = true;
-    }
-    else if (msg == config.PFC_MOSFET_2)
-    {
-      mosfet2ActionEnabled = true;
     }
     else if (msg == config.PFC_DATA_REQUEST)
     {
@@ -202,6 +186,14 @@ void Actions::runCommandReceiveAction(Communication &communication, Config &conf
     else if (msg == config.PFC_RANGING_REQUEST)
     {
       rangingRequestActionEnabled = true;
+    }
+    else if (msg == config.PFC_MOSFET_1_REQUEST)
+    {
+      mosfet1ActionEnabled = true;
+    }
+    else if (msg == config.PFC_MOSFET_2_REQUEST)
+    {
+      mosfet2ActionEnabled = true;
     }
     else
     {
@@ -229,20 +221,13 @@ void Actions::runLoggingAction(Logging &logging, Navigation &navigation, Sensors
 {
   // Log the data to the sd card
   String packet = createLoggablePacket(sensors, navigation);
-
   logging.writeTelemetry(packet);
 }
 
-void Actions::runPongAction(Communication &communication, Config &config)
-{
-  communication.sendRadio(config.PFC_PONG);
-  pongActionEnabled = false;
-}
-
-void Actions::runStatusAction(Communication &communication, Config &config)
+void Actions::runStatusAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config)
 {
   // Create the status message
-  String status = "PFC STATUS: NOT YET IMPLEMENTED";
+  String status = createStatusPacket(sensors, navigation, config);
   // Send the status message
   communication.sendRadio(status);
   statusActionEnabled = false;
@@ -284,6 +269,23 @@ void Actions::runRangingAction(Navigation &navigation, Config &config)
   navigation.readRanging(config, navigation.navigation_data);
 }
 
+String Actions::createStatusPacket(Sensors &sensors, Navigation &navigation, Config &config)
+{
+  String packet = "";
+  packet += String(config.PFC_STATUS_SEND);
+  packet += ",";
+  packet += String(sendable_packet_id);
+  packet += ",";
+  packet += String(navigation.navigation_data.gps.hour);
+  packet += ":";
+  packet += String(navigation.navigation_data.gps.minute);
+  packet += ":";
+  packet += String(navigation.navigation_data.gps.second);
+  packet += ",";
+  packet += String(millis()/1000);
+  return packet;
+}
+
 String Actions::createSendablePacket(Sensors &sensors, Navigation &navigation)
 {
   String packet = "";
@@ -310,7 +312,8 @@ String Actions::createSendablePacket(Sensors &sensors, Navigation &navigation)
   packet += String(navigation.navigation_data.gps.speed, 2);
   packet += ",";
   packet += String(sensors.data.onBoardBaro.altitude, 2);
-
+  packet += ",";
+  packet += String(millis()/1000);
   sendable_packet_id++;
 
   return packet;

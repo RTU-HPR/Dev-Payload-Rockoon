@@ -9,7 +9,6 @@ private:
 
   static const int CONFIG_FILE_VARIABLE_COUNT = 4;
   void writeConfig(Config &config);
-  void parseString(String &input, String *values, size_t maxSize);
 
 public:
   bool begin(Config &config);
@@ -18,4 +17,6 @@ public:
   bool writeTelemetry(String &data);
   bool writeInfo(String &data);
   bool writeError(String &data);
+  
+  void parseString(String &input, String *values, size_t maxSize);
 };

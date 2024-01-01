@@ -12,6 +12,9 @@ class Actions
 {
 private:
   // Prerequisite functions
+  String createStatusPacket(Sensors &sensors, Navigation &navigation, Config &config);
+  unsigned int status_packet_id = 1;
+
   String createSendablePacket(Sensors &sensors, Navigation &navigation);
   unsigned int sendable_packet_id = 1;
 
@@ -41,10 +44,7 @@ private:
   unsigned lastRangingActionMillis = 0;
 
   // Requested actions
-  void runPongAction(Communication &communication, Config &config);
-  bool pongActionEnabled = false;
-
-  void runStatusAction(Communication &communication, Config &config);
+  void runStatusAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config);
   bool statusActionEnabled = false;
 
   void runMosfet1Action(Communication &communication, Config &config);

@@ -17,7 +17,7 @@ bool Communication::beginRadio(Config &config)
 void Communication::msgToUkhas(String &msg, Config &config)
 {
   // Add the UKHAS prefix and the callsign to start of the message
-  String ukhas_msg = "$$" + config.PFC_CALLSIGN + ",";
+  String ukhas_msg = "$$" + config.PFC_TELEMETRY + ",";
   ukhas_msg += msg;
 
   // Cheksum is calculated in the sendRadio function

@@ -31,7 +31,7 @@
 class Config
 {
 public:
-  bool WAIT_PC = true;
+  bool WAIT_PC = false;
   const bool LOG_TO_STORAGE = true;
 
   // 433 MHz LoRa
@@ -280,17 +280,17 @@ public:
   // For safety purposes, to make sure that ranging is not run more often than it should be
   const int RANGING_ACTION_SAFETY_INTERVAL = DATA_SEND_ACTION_INTERVAL - RANGING_ACTION_PREEMPTIVE_INTERVAL - 1000;
 
-  // Radio Callsign
-  const String PFC_CALLSIGN = "rtu_vip_pfc";
+  // Sendable commands
+  const String PFC_TELEMETRY = "rtu_hpr_pfc";
+  const String PFC_STATUS_SEND = PFC_TELEMETRY + "_status";
+  const String PFC_RANGING_SEND = PFC_TELEMETRY + "_ranging";
+  const String PFC_MOSFET_1_SEND = PFC_TELEMETRY + "_mosfet_1";
+  const String PFC_MOSFET_2_SEND = PFC_TELEMETRY + "_mosfet_2";
   
   // Receiveable commands
-  const String PFC_PING = "PFC_PING";
-  const String PFC_DATA_REQUEST = "PFC_DATA_REQUEST";
-  const String PFC_RANGING_REQUEST = "PFC_RANGING_REQUEST";
-  const String PFC_MOSFET_1 = "PFC_MOSFET_1";
-  const String PFC_MOSFET_2 = "PFC_MOSFET_2";
-  const String PFC_STATUS = "PFC_STATUS";
-
-  // Sendable commands
-  const String PFC_PONG = "PFC_PONG";
+  const String PFC_STATUS_REQUEST = PFC_TELEMETRY + "_status_request";
+  const String PFC_DATA_REQUEST = PFC_TELEMETRY + "_data_request";
+  const String PFC_RANGING_REQUEST = PFC_TELEMETRY + "_ranging_request";
+  const String PFC_MOSFET_1_REQUEST = PFC_TELEMETRY + "_mosfet_1_request";
+  const String PFC_MOSFET_2_REQUEST = PFC_TELEMETRY + "_mosfet_2_request";
 };
