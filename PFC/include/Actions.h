@@ -22,7 +22,7 @@ private:
     unsigned long loggable_packed_id = 1;
 
     // Continuous actions
-    void runCommandReceiveAction(Communication &communication, Config &config);
+    void runCommandReceiveAction(Communication &communication, Logging &logging, Config &config);
     bool commandReceiveActionEnabled = true;
 
     void runSensorAction(Sensors &sensors);
@@ -44,24 +44,32 @@ private:
     // Timed actions
     void runEssentialDataSendAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config);
     bool dataEssentialSendActionEnabled = true;
+    uint16_t dataEssentialResponseId = 0;
 
     // Timed and Requested actions
     bool requestedActionEnabled = true;
 
-    void runInfoErrorSendAction(Communication &communication, Logging &logging);
-    bool infoErrorRequestActionEnabled = true;
+    void runInfoErrorSendAction(Communication &communication, Logging &logging, Config &config);
+    bool infoErrorRequestActionEnabled = false;
+    uint16_t infoErrorResponseId = 0;
 
     void runCompleteDataRequestAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config);
-    bool compleateDataRequestActionEnabled = true;
+    bool completeDataRequestActionEnabled = false;
+    uint16_t completeDataResponseId = 0;
 
     void runFormatStorageAction(Communication &communication, Logging &logging, Config &config);
-    bool formatStorageActionEnabled = true;
+    bool formatStorageActionEnabled = false;
+    uint16_t formatResponseId = 0;
 
     void runHeaterSetAction(Communication &communication, Config &config);
-    bool heaterSetActionEnabled = true;
+    bool heaterSetActionEnabled = false;
+    bool heaterState = false;
+    uint16_t heaterResponseId = 0;
 
     void runPyroFireAction(Communication &communication, Config &config);
-    bool pyroFireActionEnabled = true;
+    bool pyroFireActionEnabled = false;
+    int pyroChannel = -1;
+    uint16_t pyroResponseId = 0;
 
     // void runStatusAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config);
     // bool statusActionEnabled = false;
@@ -82,7 +90,7 @@ private:
 
     void runTimedActions(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config);
 
-    void runRequestedActions(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config);
+    void runRequestedActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config);
 
 public:
     void runAllActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config);

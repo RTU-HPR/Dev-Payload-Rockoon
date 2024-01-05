@@ -270,7 +270,7 @@ public:
     // Actions
     const int TIMED_ACTION_INITIAL_DELAY = 10000;
     // Data send action interval
-    const int COMMUNICATION_CYCLE_INTERVAL = 240000;
+    const int COMMUNICATION_CYCLE_INTERVAL = 24000;
     const int COMMUNICATION_RESPONSE_SEND_TIME = 10000;
     const int COMMUNICATION_ESSENTIAL_DATA_SEND_TIME = 18000;
 
@@ -281,17 +281,17 @@ public:
 
     // Sendable commands
     const String PFC_TELEMETRY = "rtu_pfc";
-    const String PFC_INFO_ERROR_RESPONSE = PFC_TELEMETRY + "_info_error_response";
-    const String PFC_COMPLETE_DATA_RESPONSE = PFC_TELEMETRY + "_data_complete_response";
-    const String PFC_FORMAT_RESPONSE = PFC_TELEMETRY + "_format_response";
-    const String PFC_HEATER_RESPONSE = PFC_TELEMETRY + "_heater_response";
-    const String PFC_PYRO_RESPONSE = PFC_TELEMETRY + "_pyro_response";
+    const String PFC_ESSENTIAL_DATA_RESPONSE = "100";
+    const String PFC_INFO_ERROR_RESPONSE = "102";
+    const String PFC_COMPLETE_DATA_RESPONSE = "101";
+    const String PFC_FORMAT_RESPONSE = "103";
+    const String PFC_HEATER_RESPONSE = "104";
+    const String PFC_PYRO_RESPONSE = "105";
 
     // Receiveable commands
-    const String BS_TELEMETRY = "rtu_bs_pfc";
-    const String PFC_INFO_ERROR_REQUEST = BS_TELEMETRY + "_info_error_request";
-    const String PFC_COMPLETE_DATA_REQUEST = BS_TELEMETRY + "_data_complete_request";
-    const String PFC_FORMAT_REQUEST = BS_TELEMETRY + "_format_request";
-    const String PFC_HEATER_REQUEST = BS_TELEMETRY + "_heater_request";
-    const String PFC_PYRO_REQUEST = BS_TELEMETRY + "_pyro_request";
+    const String PFC_INFO_ERROR_REQUEST = PFC_TELEMETRY + "1001";
+    const String PFC_COMPLETE_DATA_REQUEST = PFC_TELEMETRY + "1000";
+    const String PFC_FORMAT_REQUEST = PFC_TELEMETRY + "1002";
+    const String PFC_HEATER_REQUEST = PFC_TELEMETRY + "1003";
+    const String PFC_PYRO_REQUEST = PFC_TELEMETRY + "1004";
 };

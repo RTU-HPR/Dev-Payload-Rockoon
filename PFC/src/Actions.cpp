@@ -27,7 +27,7 @@ void Actions::runContinousActions(Sensors &sensors, Navigation &navigation, Comm
     // Run the command receive action
     if (commandReceiveActionEnabled)
     {
-        runCommandReceiveAction(communication, config);
+        runCommandReceiveAction(communication, logging, config);
     }
     // Serial.println("Command receive action time: " + String(millis() - last_time_2) + "ms");
     // last_time_2 = millis();
@@ -80,15 +80,23 @@ void Actions::runTimedActions(Sensors &sensors, Navigation &navigation, Communic
 
 void Actions::runRequestedActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config)
 {
-    if (!requestedActionsEnabled)
+    if (!requestedActionEnabled)
     {
         return;
     }
+    if (millis() - lastCommunicationCycle >= config.COMMUNICATION_RESPONSE_SEND_TIME && millis() - lastCommunicationCycle <= config.COMMUNICATION_ESSENTIAL_DATA_SEND_TIME)
+    {
+    }
+    else
+    {
+        return;
+    }
+
     if (infoErrorRequestActionEnabled)
     {
-        runInfoErrorSendAction(communication, logging);
+        runInfoErrorSendAction(communication, logging, config);
     }
-    if (compleateDataRequestActionEnabled)
+    if (completeDataRequestActionEnabled)
     {
         runCompleteDataRequestAction(sensors, navigation, communication, config);
     }
@@ -106,7 +114,7 @@ void Actions::runRequestedActions(Sensors &sensors, Navigation &navigation, Comm
     }
 }
 
-void Actions::runCommandReceiveAction(Communication &communication, Config &config)
+void Actions::runCommandReceiveAction(Communication &communication, Logging &logging, Config &config)
 {
     String msg = "";
     float rssi = 1;
@@ -151,25 +159,44 @@ void Actions::runCommandReceiveAction(Communication &communication, Config &conf
         Serial.println(msg);
 
         // Set the action flag according to the received command
-        if (msg == config.PFC_STATUS_REQUEST)
+        if (msg.substring(0, config.PFC_INFO_ERROR_REQUEST.length()) == config.PFC_INFO_ERROR_REQUEST)
         {
-            statusActionEnabled = true;
+            infoErrorRequestActionEnabled = true;
+            // get BS time epoch
+            String values[2];
+            logging.parseString(msg, values, 2);
         }
-        else if (msg == config.PFC_DATA_REQUEST)
+        else if (msg.substring(0, config.PFC_COMPLETE_DATA_REQUEST.length()) == config.PFC_COMPLETE_DATA_REQUEST)
         {
-            dataRequestActionEnabled = true;
+            completeDataRequestActionEnabled = true;
+            // get BS time epoch
+            String values[2];
+            logging.parseString(msg, values, 2);
         }
-        else if (msg == config.PFC_RANGING_REQUEST)
+        else if (msg.substring(0, config.PFC_FORMAT_REQUEST.length()) == config.PFC_FORMAT_REQUEST)
         {
-            rangingRequestActionEnabled = true;
+            formatStorageActionEnabled = true;
+            // get BS time epoch
+            String values[2];
+            logging.parseString(msg, values, 2);
         }
-        else if (msg == config.PFC_MOSFET_1_REQUEST)
+        else if (msg.substring(0, config.PFC_HEATER_REQUEST.length()) == config.PFC_HEATER_REQUEST)
         {
-            mosfet1ActionEnabled = true;
+            heaterSetActionEnabled = true;
+            String values[3];
+            logging.parseString(msg, values, 3);
+            // need to add setting of epoch
+            heaterState = (bool)values[3].toInt();
         }
-        else if (msg == config.PFC_MOSFET_2_REQUEST)
+        else if (msg.substring(0, config.PFC_PYRO_REQUEST.length()) == config.PFC_PYRO_REQUEST)
         {
-            mosfet2ActionEnabled = true;
+            pyroFireActionEnabled = true;
+            // get BS time epoch
+            // get pyro channel
+            String values[3];
+            logging.parseString(msg, values, 3);
+            // need to add setting of epoch
+            pyroChannel = values[3].toInt();
         }
         else
         {
@@ -204,30 +231,92 @@ void Actions::runEssentialDataSendAction(Sensors &sensors, Navigation &navigatio
 {
     if (millis() - lastCommunicationCycle >= config.COMMUNICATION_ESSENTIAL_DATA_SEND_TIME && millis() - lastCommunicationCycle <= config.COMMUNICATION_CYCLE_INTERVAL)
     {
+        // need to implement completeDataMSG proper sensor values
+        String essentialDataMSG = "1.00,2.00,3.00,4.00,5,6,1,0";
+        String msg = config.PFC_ESSENTIAL_DATA_RESPONSE + "," + dataEssentialResponseId + "," + essentialDataMSG;
+        communication.msgToUkhas(msg, config);
+        if (!communication.sendRadio(msg))
+        {
+            return;
+        }
+        dataEssentialResponseId++;
         dataEssentialSendActionEnabled = false;
         Serial.println("Sending essential data");
     }
 }
 
 // Timed and Requested actions
-void Actions::runInfoErrorSendAction(Communication &communication, Logging &logging)
+void Actions::runInfoErrorSendAction(Communication &communication, Logging &logging, Config &config)
 {
+    String infoErrorMSG = "!Sample error";
+    String msg = config.PFC_INFO_ERROR_RESPONSE + "," + infoErrorResponseId + "," + infoErrorMSG;
+    communication.msgToUkhas(msg, config);
+    if (!communication.sendRadio(msg))
+    {
+        return;
+    }
+    infoErrorResponseId++;
+    infoErrorRequestActionEnabled = false;
+    requestedActionEnabled = false;
 }
 
 void Actions::runCompleteDataRequestAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config)
 {
+    // need to implement completeDataMSG proper sensor values
+    String completeDataMSG = "1.00,2.00,3.00,4.00, 255,5.00,6.00,420,421,7.00";
+    String msg = config.PFC_COMPLETE_DATA_RESPONSE + "," + completeDataResponseId + "," + completeDataMSG;
+    communication.msgToUkhas(msg, config);
+    if (!communication.sendRadio(msg))
+    {
+        return;
+    }
+    completeDataResponseId++;
+    completeDataRequestActionEnabled = false;
+    requestedActionEnabled = false;
 }
 
 void Actions::runFormatStorageAction(Communication &communication, Logging &logging, Config &config)
 {
+    // need to implement formatting of SD card
+
+    String msg = config.PFC_FORMAT_RESPONSE + "," + formatResponseId + "," + "1";
+    communication.msgToUkhas(msg, config);
+    if (!communication.sendRadio(msg))
+    {
+        return;
+    }
+    formatResponseId++;
+    formatStorageActionEnabled = false;
+    requestedActionEnabled = false;
 }
 
 void Actions::runHeaterSetAction(Communication &communication, Config &config)
 {
+    // need to implement heater mode setting
+    String msg = config.PFC_HEATER_RESPONSE + "," + heaterResponseId + "," + "1";
+    communication.msgToUkhas(msg, config);
+    if (!communication.sendRadio(msg))
+    {
+        return;
+    }
+    heaterResponseId++;
+    heaterSetActionEnabled = false;
+    requestedActionEnabled = false;
 }
 
 void Actions::runPyroFireAction(Communication &communication, Config &config)
 {
+    // need to implement pyro firing
+
+    String msg = config.PFC_PYRO_RESPONSE + "," + pyroResponseId + "," + "1";
+    communication.msgToUkhas(msg, config);
+    if (!communication.sendRadio(msg))
+    {
+        return;
+    }
+    pyroResponseId++;
+    infoErrorRequestActionEnabled = false;
+    requestedActionEnabled = false;
 }
 
 // void Actions::runStatusAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config)
@@ -277,11 +366,13 @@ void Actions::runRangingAction(Navigation &navigation, Config &config)
 
 void Actions::runGetCommunicationCycleStartAction(Navigation &navigation, Config &config)
 {
-    if (navigation.navigation_data.gps.epoch_time == 0)
+    // Serial.println("GPS epoch time: " + String(navigation.navigation_data.gps.epoch_time));
+    if (millis() - lastCommunicationCycle <= 3000)
     {
+        // Serial.println("Communication cycle already started: " + String(millis() - lastCommunicationCycle));
         return;
     }
-    if (millis() - lastCommunicationCycle <= config.COMMUNICATION_CYCLE_INTERVAL / 3)
+    if (navigation.navigation_data.gps.epoch_time == 0)
     {
         return;
     }
@@ -291,7 +382,7 @@ void Actions::runGetCommunicationCycleStartAction(Navigation &navigation, Config
     {
         lastCommunicationCycle = millis();
         dataEssentialSendActionEnabled = true;
-        requestedActionsEnabled = true;
+        requestedActionEnabled = true;
         Serial.println("New communication cycle started: " + String(lastCommunicationCycle));
     }
 }
@@ -299,7 +390,7 @@ void Actions::runGetCommunicationCycleStartAction(Navigation &navigation, Config
 String Actions::createStatusPacket(Sensors &sensors, Navigation &navigation, Config &config)
 {
     String packet = "";
-    packet += String(config.PFC_STATUS_SEND);
+    // packet += String(config.PFC_STATUS_SEND);
     packet += ",";
     packet += String(sendable_packet_id);
     packet += ",";
