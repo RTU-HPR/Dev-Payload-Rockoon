@@ -289,9 +289,9 @@ public:
     const String PFC_PYRO_RESPONSE = "105";
 
     // Receiveable commands
-    const String PFC_INFO_ERROR_REQUEST = PFC_TELEMETRY + "1001";
-    const String PFC_COMPLETE_DATA_REQUEST = PFC_TELEMETRY + "1000";
-    const String PFC_FORMAT_REQUEST = PFC_TELEMETRY + "1002";
-    const String PFC_HEATER_REQUEST = PFC_TELEMETRY + "1003";
-    const String PFC_PYRO_REQUEST = PFC_TELEMETRY + "1004";
+    const String PFC_INFO_ERROR_REQUEST = PFC_TELEMETRY + ",1001";
+    const String PFC_COMPLETE_DATA_REQUEST = PFC_TELEMETRY + ",1000";
+    const String PFC_FORMAT_REQUEST = PFC_TELEMETRY + ",1002";
+    const String PFC_HEATER_REQUEST = PFC_TELEMETRY + ",1003";
+    const String PFC_PYRO_REQUEST = PFC_TELEMETRY + ",1004";
 };
