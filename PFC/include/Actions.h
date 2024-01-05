@@ -12,10 +12,10 @@ class Actions
 {
 private:
     // Prerequisite functions
-    String createStatusPacket(Sensors &sensors, Navigation &navigation, Config &config);
+    String createCompleteDataPacket(Sensors &sensors, Navigation &navigation, Config &config);
     unsigned int status_packet_id = 1;
 
-    String createSendablePacket(Sensors &sensors, Navigation &navigation);
+    String createEssentialDataPacket(Sensors &sensors, Navigation &navigation, Config &config);
     unsigned int sendable_packet_id = 1;
 
     String createLoggablePacket(Sensors &sensors, Navigation &navigation);

@@ -232,7 +232,7 @@ void Actions::runEssentialDataSendAction(Sensors &sensors, Navigation &navigatio
     if (millis() - lastCommunicationCycle >= config.COMMUNICATION_ESSENTIAL_DATA_SEND_TIME && millis() - lastCommunicationCycle <= config.COMMUNICATION_CYCLE_INTERVAL)
     {
         // need to implement completeDataMSG proper sensor values
-        String essentialDataMSG = "1.00,2.00,3.00,4.00,5,6,1,0";
+        String essentialDataMSG = createEssentialDataPacket(sensors, navigation, config);
         String msg = config.PFC_ESSENTIAL_DATA_RESPONSE + "," + dataEssentialResponseId + "," + essentialDataMSG;
         communication.msgToUkhas(msg, config);
         if (!communication.sendRadio(msg))
@@ -264,7 +264,7 @@ void Actions::runInfoErrorSendAction(Communication &communication, Logging &logg
 void Actions::runCompleteDataRequestAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config)
 {
     // need to implement completeDataMSG proper sensor values
-    String completeDataMSG = "1.00,2.00,3.00,4.00, 255,5.00,6.00,420,421,7.00";
+    String completeDataMSG = createCompleteDataPacket(sensors, navigation, config);
     String msg = config.PFC_COMPLETE_DATA_RESPONSE + "," + completeDataResponseId + "," + completeDataMSG;
     communication.msgToUkhas(msg, config);
     if (!communication.sendRadio(msg))
@@ -392,53 +392,54 @@ void Actions::runGetCommunicationCycleStartAction(Navigation &navigation, Config
     }
 }
 
-String Actions::createStatusPacket(Sensors &sensors, Navigation &navigation, Config &config)
+String Actions::createCompleteDataPacket(Sensors &sensors, Navigation &navigation, Config &config)
 {
     String packet = "";
-    // packet += String(config.PFC_STATUS_SEND);
+    packet += String(completeDataResponseId);
     packet += ",";
-    packet += String(sendable_packet_id);
+    packet += String(sensors.data.containerBaro.temperature, 1);
     packet += ",";
-    packet += String(navigation.navigation_data.gps.hour);
-    packet += ":";
-    packet += String(navigation.navigation_data.gps.minute);
-    packet += ":";
-    packet += String(navigation.navigation_data.gps.second);
+    packet += String(sensors.data.containerTemperature.temperature, 1);
     packet += ",";
-    packet += String(millis() / 1000);
+    packet += String(sensors.data.outsideThermistor.temperature, 1);
+    packet += ",";
+    packet += String(sensors.data.containerBaro.pressure, 2);
+    packet += ",";
+    packet += String("255"); // need to implement heater power
+    packet += ",";
+    packet += String(navigation.navigation_data.ranging[0].distance, 1);
+    packet += ",";
+    packet += String(navigation.navigation_data.ranging[2].distance, 1);
+    packet += ",";
+    packet += String("0"); // need to implement time since last ranging
+    packet += ",";
+    packet += String("0"); // need to implement time since last ranging
+    packet += ",";
+    packet += String(sensors.data.battery.voltage, 2);
+
     return packet;
 }
 
-String Actions::createSendablePacket(Sensors &sensors, Navigation &navigation)
+String Actions::createEssentialDataPacket(Sensors &sensors, Navigation &navigation, Config &config)
 {
     String packet = "";
-    packet += String(sendable_packet_id);
-    packet += ",";
-    packet += String(navigation.navigation_data.gps.hour);
-    packet += ":";
-    packet += String(navigation.navigation_data.gps.minute);
-    packet += ":";
-    packet += String(navigation.navigation_data.gps.second);
+    packet += String(dataEssentialResponseId);
     packet += ",";
     packet += String(navigation.navigation_data.gps.lat, 7);
-    packet += ",";
+    packet += ":";
     packet += String(navigation.navigation_data.gps.lng, 7);
+    packet += ":";
+    packet += String(navigation.navigation_data.gps.altitude, 1);
     packet += ",";
-    packet += String(navigation.navigation_data.gps.altitude, 2);
-    packet += ",";
-    packet += String(sensors.data.outsideThermistor.temperature, 2);
+    packet += String(sensors.data.onBoardBaro.altitude, 1);
     packet += ",";
     packet += String(navigation.navigation_data.gps.satellites);
     packet += ",";
-    packet += String(sensors.data.onBoardBaro.pressure);
+    packet += String("0"); // need to implement time since last location fix for gps
     packet += ",";
-    packet += String(navigation.navigation_data.gps.speed, 2);
+    packet += String("1"); // need to implemt time based on gps?
     packet += ",";
-    packet += String(sensors.data.onBoardBaro.altitude, 2);
-    packet += ",";
-    packet += String(millis() / 1000);
-    sendable_packet_id++;
-
+    packet += String("0"); // need to implement error/info queue
     return packet;
 }
 
