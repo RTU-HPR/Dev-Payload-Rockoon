@@ -53,6 +53,11 @@ void Actions::runContinousActions(Sensors &sensors, Navigation &navigation, Comm
     {
         runGetCommunicationCycleStartAction(navigation, config);
     }
+    // Run the pyro channel manager action
+    if (pyroChannelManagerActionEnabled)
+    {
+        runPyroChannelManagerAction(config);
+    }
     // Serial.println("GPS action time: " + String(millis() - last_time_2) + "ms");
     // last_time_2 = millis();
     // Run the logging action
@@ -196,7 +201,15 @@ void Actions::runCommandReceiveAction(Communication &communication, Logging &log
             String values[3];
             logging.parseString(msg, values, 3);
             // need to add setting of epoch
-            pyroChannel = values[3].toInt();
+            uint8_t pyroChannel = values[3].toInt();
+            if (pyroChannel <= 1)
+            {
+                pyroChannelShouldBeFired[pyroChannel] = true;
+            }
+            else
+            {
+                // error("Invalid pyro channel: " + String(pyroChannel); to be implemeted
+            }
         }
         else
         {
@@ -225,6 +238,42 @@ void Actions::runLoggingAction(Logging &logging, Navigation &navigation, Sensors
     // Log the data to the sd card
     String packet = createLoggablePacket(sensors, navigation);
     logging.writeTelemetry(packet);
+}
+
+void Actions::runPyroChannelManagerAction(Config &config)
+{
+    // Check if the pyro channel should be fired
+    for (int i = 0; i < 2; i++)
+    {
+        if (pyroChannelShouldBeFired[i])
+        {
+            pyroChannelFireTimes[i] = millis();
+            pinMode(config.MOSFET_1, OUTPUT_12MA);
+            pinMode(config.MOSFET_2, OUTPUT_12MA);
+            if (i == 0)
+            {
+                digitalWrite(config.MOSFET_1, HIGH);
+            }
+            else if (i == 1)
+            {
+                digitalWrite(config.MOSFET_2, HIGH);
+            }
+            pyroChannelShouldBeFired[i] = false;
+
+            if (millis() - pyroChannelFireTimes[i] >= config.PYRO_CHANNEL_FIRE_TIME)
+            {
+                // Fire the pyro channel
+                if (i == 0)
+                {
+                    digitalWrite(config.MOSFET_1, LOW);
+                }
+                else if (i == 1)
+                {
+                    digitalWrite(config.MOSFET_2, LOW);
+                }
+            }
+        }
+    }
 }
 
 void Actions::runEssentialDataSendAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config)
@@ -310,8 +359,7 @@ void Actions::runHeaterSetAction(Communication &communication, Config &config)
 
 void Actions::runPyroFireAction(Communication &communication, Config &config)
 {
-    // need to implement pyro firing
-
+    // Simply a response to the pyro request
     String msg = config.PFC_PYRO_RESPONSE + "," + pyroResponseId + "," + "1";
     communication.msgToUkhas(msg, config);
     if (!communication.sendRadio(msg))

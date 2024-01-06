@@ -41,6 +41,10 @@ private:
     bool getCommunicationCycleStartActionEnabled = true;
     unsigned long lastCommunicationCycle = 0;
 
+    void runPyroChannelManagerAction(Config &config);
+    bool pyroChannelStates[2] = {false, false};
+    unsigned long pyroChannelFireTimes[2] = {0, 0};
+
     // Timed actions
     void runEssentialDataSendAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config);
     bool dataEssentialSendActionEnabled = true;
