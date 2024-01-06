@@ -258,6 +258,7 @@ public:
     // Parachute
     const int MOSFET_1 = 19;
     const int MOSFET_2 = 18; // mosfet 2
+    const int PYRO_CHANNEL_FIRE_TIME = 5000;
 
     const String TELEMETRY_LOG_FILE_NAME_BASE_PATH = "/PFC_TELEMETRY_";
     const String INFO_LOG_FILE_NAME_BASE_PATH = "/PFC_INFO_";

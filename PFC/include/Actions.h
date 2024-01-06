@@ -42,7 +42,8 @@ private:
     unsigned long lastCommunicationCycle = 0;
 
     void runPyroChannelManagerAction(Config &config);
-    bool pyroChannelStates[2] = {false, false};
+    bool pyroChannelManagerActionEnabled = true;
+    bool pyroChannelShouldBeFired[2] = {false, false};
     unsigned long pyroChannelFireTimes[2] = {0, 0};
 
     // Timed actions
@@ -72,7 +73,6 @@ private:
 
     void runPyroFireAction(Communication &communication, Config &config);
     bool pyroFireActionEnabled = false;
-    int pyroChannel = -1;
     uint16_t pyroResponseId = 0;
 
     // void runStatusAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config);
