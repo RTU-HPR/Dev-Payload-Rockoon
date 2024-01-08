@@ -12,12 +12,8 @@ class Actions
 {
 private:
     // Prerequisite functions
-    String createStatusPacket(Sensors &sensors, Navigation &navigation, Config &config);
-    unsigned int status_packet_id = 1;
-
-    String createSendablePacket(Sensors &sensors, Navigation &navigation);
-    unsigned int sendable_packet_id = 1;
-
+    String createEssentialDataPacket(Sensors &sensors, Navigation &navigation, Config &config);
+    String createCompleteDataPacket(Sensors &sensors, Navigation &navigation, Config &config);
     String createLoggablePacket(Sensors &sensors, Navigation &navigation);
     unsigned long loggable_packed_id = 1;
 
@@ -70,21 +66,6 @@ private:
     bool pyroFireActionEnabled = false;
     int pyroChannel = -1;
     uint16_t pyroResponseId = 0;
-
-    // void runStatusAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config);
-    // bool statusActionEnabled = false;
-
-    // void runMosfet1Action(Communication &communication, Config &config);
-    // bool mosfet1ActionEnabled = false;
-
-    // void runMosfet2Action(Communication &communication, Config &config);
-    // bool mosfet2ActionEnabled = false;
-
-    // void runDataRequestAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config);
-    // bool dataRequestActionEnabled = false;
-
-    // void runRangingRequestAction(Navigation &navigation, Config &config);
-    // bool rangingRequestActionEnabled = false;
 
     void runContinousActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config);
 

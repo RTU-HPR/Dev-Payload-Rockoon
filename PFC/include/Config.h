@@ -93,7 +93,7 @@ public:
     };
 
     // SD card
-    String TELMETRY_FILE_HEADER = "index,time,gps_lat,gps_lng,gps_altitude,outside_temperature,gps_satellites,pressure,gps_speed,baro_altitude,acc_x,acc_y,acc_z,acc_heading,acc_pitch,acc_roll,gyro_x,gyro_y,gyro_z,imu_temp,onboard_temp,container_temp,container_temp_baro,container_pressure,battery_voltage,gps_epoch,gps_heading,gps_pdop,r1_distance,r1_ferror,r1_rssi,r1_snr,r1_time,r2_distance,r2_ferror,r2_rssi,r2_snr,r2_time,r3_distance,r3_ferror,r3_rssi,r3_snr,r3_time,ranging_lat,ranging_lng,ranging_altitude,time_on_ms,loop_time";
+    String TELMETRY_FILE_HEADER = "index,time,gps_lat,gps_lng,gps_altitude,outside_temperature,gps_satellites,pressure,gps_speed,baro_altitude,acc_x,acc_y,acc_z,acc_heading,acc_pitch,acc_roll,gyro_x,gyro_y,gyro_z,imu_temp,onboard_temp,container_temp,container_temp_baro,container_pressure,battery_voltage,gps_epoch,gps_heading,gps_pdop,r1_distance,r1_ferror,r1_rssi,r1_snr,r1_time,r2_distance,r2_ferror,r2_rssi,r2_snr,r2_time,r3_distance,r3_ferror,r3_rssi,r3_snr,r3_time,ranging_lat,ranging_lng,ranging_altitude,time_on_ms,used_heap,loop_time";
     String INFO_FILE_HEADER = "time,info";
     String ERROR_FILE_HEADER = "time,error";
     String CONFIG_FILE_HEADER = "descent_flag,remaining_descent_time,parachutes_deployed_flag,heater_control_flag";
@@ -233,11 +233,6 @@ public:
     const int SPI0_TX = 7;
     const int SPI0_SCK = 6;
 
-    // SPI bus usage
-    // Sd card
-    const int SD_CARD_CS = 9;
-    SPIClassRP2040 *SD_CARD_SPI = &SPI;
-
     // Port extender
     const int PORT_EXTENDER_BUZZER_PIN = 1; // Buzzer
     const int PORT_EXTENDER_LED_2_PIN = 2;  // Status LED 2
@@ -245,7 +240,6 @@ public:
 
     // logging
     const int PC_BAUDRATE = 115200;
-    FS *FILE_SYSTEM = &SDFS; // if change to LittleFS need to change some code
 
     // HEATER
     const int HEATER_MOSFET = 16; // mosfet 1
@@ -259,25 +253,12 @@ public:
     const int MOSFET_1 = 19;
     const int MOSFET_2 = 18; // mosfet 2
 
-    const String TELEMETRY_LOG_FILE_NAME_BASE_PATH = "/PFC_TELEMETRY_";
-    const String INFO_LOG_FILE_NAME_BASE_PATH = "/PFC_INFO_";
-    const String ERROR_LOG_FILE_NAME_BASE_PATH = "/PFC_ERROR_";
-
-    const String TELEMETRY_HEADER = "gps_epoch_time,gps_lat,gps_lng,gps_height,gps_speed,gps_time_since_last,acc_x,acc_y,acc_z,gyro_x,gyro_y,gyro_z,r1_dist,r2_dist,r3_dist,r1_time_since,r2_time_since,r3_time_since,r_pos_lat,r_pos_lng,r_pos_alt,r_pos_time_since,inner_baro_pressure,outer_baro_pressure,avg_inner_temp,avg_outer_temp,heater_power,time_on,avg_battery_voltage,outer_baro_altitude,outer_baro_speed,gps_heading,gps_pdop,gps_satellites,raw_inner_temp,raw_outer_temp_thermistor,raw_inner_temp_baro,raw_outer_temp_baro,raw_batt_voltage,raw_heater_current,avg_heater_current,p_term,i_term,d_term,target_temp,r1_time,r1_rssi,r1_snr,r1_f_error,r2_time,r2_rssi,r2_snr,r2_f_error,r3_time,r3_rssi,r3_snr,r3_f_error,last_frequency";
-    const String INFO_HEADER = "time_on,info";
-    const String ERROR_HEADER = "time_on,error";
-
     // Actions
     const int TIMED_ACTION_INITIAL_DELAY = 10000;
     // Data send action interval
     const int COMMUNICATION_CYCLE_INTERVAL = 24000;
     const int COMMUNICATION_RESPONSE_SEND_TIME = 10000;
     const int COMMUNICATION_ESSENTIAL_DATA_SEND_TIME = 18000;
-
-    // Ranging action interval is preemptive
-    // Ranging will run the defined interval before
-    // the data send action happens
-    // E.g. Ranging action will run 2 seconds before
 
     // Sendable commands
     const String PFC_TELEMETRY = "rtu_pfc";
@@ -289,9 +270,9 @@ public:
     const String PFC_PYRO_RESPONSE = "105";
 
     // Receiveable commands
-    const String PFC_INFO_ERROR_REQUEST = PFC_TELEMETRY + "1001";
-    const String PFC_COMPLETE_DATA_REQUEST = PFC_TELEMETRY + "1000";
-    const String PFC_FORMAT_REQUEST = PFC_TELEMETRY + "1002";
-    const String PFC_HEATER_REQUEST = PFC_TELEMETRY + "1003";
-    const String PFC_PYRO_REQUEST = PFC_TELEMETRY + "1004";
+    const String PFC_INFO_ERROR_REQUEST = PFC_TELEMETRY + ",1001";
+    const String PFC_COMPLETE_DATA_REQUEST = PFC_TELEMETRY + ",1000";
+    const String PFC_FORMAT_REQUEST = PFC_TELEMETRY + ",1002";
+    const String PFC_HEATER_REQUEST = PFC_TELEMETRY + ",1003";
+    const String PFC_PYRO_REQUEST = PFC_TELEMETRY + ",1004";
 };

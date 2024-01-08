@@ -36,7 +36,9 @@ bool Navigation::beginRanging(const Ranging_Wrapper::Lora_Device &ranging_config
         Serial.println("Ranging initialization failed with error: " + result);
         return false;
     }
+    // Default values
     navigation_data.ranging_position = Ranging_Wrapper::Position(0, 0, 0);
+    
     return true;
 }
 
@@ -46,12 +48,9 @@ bool Navigation::readGps(NAVIGATION_DATA &navigation_data)
     bool time_valid = false;
     if (!_gps.read(navigation_data.gps, position_valid, time_valid))
     {
-        return false;
+      return false;
     }
-    else
-    {
-        return false;
-    }
+    return true;
 }
 
 bool Navigation::readRanging(Config &config, NAVIGATION_DATA &navigation_data)
