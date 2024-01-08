@@ -124,7 +124,7 @@ void Actions::runCommandReceiveAction(Communication &communication, Logging &log
       String values[3];
       logging.parseString(msg, values, 3);
       // need to add setting of epoch
-      pyroChannel = values[3].toInt();
+      int pyroChannel = values[3].toInt();
     }
     else
     {
