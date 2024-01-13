@@ -288,7 +288,7 @@ public:
     // Actions
     const int TIMED_ACTION_INITIAL_DELAY = 10000;
     // Data send action interval
-    const int COMMUNICATION_CYCLE_INTERVAL = 24000;
+    const int COMMUNICATION_CYCLE_INTERVAL = 20000;
     const int COMMUNICATION_RESPONSE_SEND_TIME = 10000;
     const int COMMUNICATION_ESSENTIAL_DATA_SEND_TIME = 18000;
 

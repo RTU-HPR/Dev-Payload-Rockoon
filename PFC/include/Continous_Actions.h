@@ -170,7 +170,7 @@ void Actions::runRangingAction(Navigation &navigation, Config &config)
 void Actions::runGetCommunicationCycleStartAction(Navigation &navigation, Config &config)
 {
   // Serial.println("GPS epoch time: " + String(navigation.navigation_data.gps.epoch_time));
-  if (millis() - lastCommunicationCycle <= 3000)
+  if (millis() - lastCommunicationCycle <= 1000)
   {
     // Serial.println("Communication cycle already started: " + String(millis() - lastCommunicationCycle));
     return;
@@ -181,11 +181,11 @@ void Actions::runGetCommunicationCycleStartAction(Navigation &navigation, Config
   }
 
   int comm_cycle_interval_sec = config.COMMUNICATION_CYCLE_INTERVAL / 1000;
-  if (navigation.navigation_data.gps.second % comm_cycle_interval_sec == 0 || navigation.navigation_data.gps.second % comm_cycle_interval_sec + 1 == 0 || navigation.navigation_data.gps.second % comm_cycle_interval_sec - 1 == 0)
+  if (navigation.navigation_data.gps.second % comm_cycle_interval_sec == 0)
   {
     lastCommunicationCycle = millis();
     dataEssentialSendActionEnabled = true;
-    Serial.println("New communication cycle started: " + String(lastCommunicationCycle));
+    Serial.println("New communication cycle started: " + String(lastCommunicationCycle) + " " + String(navigation.navigation_data.gps.second));
   }
 }
 
