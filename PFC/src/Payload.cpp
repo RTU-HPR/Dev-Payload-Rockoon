@@ -84,6 +84,18 @@ void Payload::begin()
 
   Serial.println("Pyro channels set to output and pulled low");
 
+  // Set the launch rail switch to input
+  pinMode(config.LAUNCH_RAIL_SWITCH_PIN, INPUT);
+
+  Serial.println("Launch rail switch set to input");
+
+  // Set the heater pin to output and pull it low
+  pinMode(config.heater_config.heater_pin, OUTPUT_12MA);
+  digitalWrite(config.heater_config.heater_pin, LOW);
+  // The analog write range and frequency has to be changed for heater PWM to work properly
+  analogWriteRange(1000); // Don't change this value
+  analogWriteFreq(100);   // Don't change this value
+
   // Initialize the SD card
   if (!logging.begin(config))
   {
@@ -190,6 +202,11 @@ void Payload::begin()
   {
     Serial.println("Navigation initialized successfully");
   }
+
+  // Initialise the heater, but don't enable it yet
+  heater.begin(config.heater_config);
+  heater.enableHeater(sensors.data.containerTemperature.temperature);
+  Serial.println("Heater initialized successfully");
   
   Serial.println();
 }

@@ -1,6 +1,6 @@
 #include <Actions.h>
 
-void Actions::runContinousActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config)
+void Actions::runContinousActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Heater &heater, Config &config)
 {
   // Receive any commands
   if (commandReceiveActionEnabled)
@@ -18,6 +18,12 @@ void Actions::runContinousActions(Sensors &sensors, Navigation &navigation, Comm
   if (sensorActionEnabled)
   {
     runSensorAction(sensors);
+  }
+
+  // Run the heater action
+  if (heaterActionEnabled)
+  {
+    runHeaterAction(heater, sensors);
   }
 
   // Run the GPS action
@@ -102,13 +108,6 @@ void Actions::runCommandReceiveAction(Communication &communication, Logging &log
     {
       formatStorageActionEnabled = true;
     }
-    else if (msg.substring(0, config.PFC_HEATER_REQUEST.length()) == config.PFC_HEATER_REQUEST)
-    {
-      heaterSetActionEnabled = true;
-      String values[3];
-      logging.parseString(msg, values, 3);
-      heaterState = (bool)values[3].toInt();
-    }
     else if (msg.substring(0, config.PFC_PYRO_REQUEST.length()) == config.PFC_PYRO_REQUEST)
     {
       pyroFireActionEnabled = true;
@@ -116,9 +115,9 @@ void Actions::runCommandReceiveAction(Communication &communication, Logging &log
       // Get the pyro channel
       String values[3];
       logging.parseString(msg, values, 3);
+      int pyroChannel = values[3].toInt();
 
       // Set the appropriate pyro channel flag
-      int pyroChannel = values[3].toInt();
       if (pyroChannel == 1)
       {
         pyroChannelShouldBeFired[0] = true;
@@ -143,6 +142,12 @@ void Actions::runSensorAction(Sensors &sensors)
 {
   // Read all sensors
   sensors.readSensors();
+}
+
+void Actions::runHeaterAction(Heater &heater, const Sensors &sensors)
+{
+  // Update the heater
+  heater.update(sensors.data.containerTemperature.temperature);
 }
 
 void Actions::runGpsAction(Navigation &navigation)
@@ -180,7 +185,6 @@ void Actions::runGetCommunicationCycleStartAction(Navigation &navigation, Config
   {
     lastCommunicationCycle = millis();
     dataEssentialSendActionEnabled = true;
-    requestedActionEnabled = true;
     Serial.println("New communication cycle started: " + String(lastCommunicationCycle));
   }
 }
@@ -198,12 +202,12 @@ void Actions::runPyroChannelManagerAction(Config &config)
         pyroChannelFireTimes[i] = millis();
         if (i == 0)
         {
-          diigtalWrite(config.PYRO_CHANNEL_1, HIGH);
+          digitalWrite(config.PYRO_CHANNEL_1, HIGH);
           Serial.println("Pyro channel 1 fired");
         }
         else if (i == 1)
         {
-          diigtalWrite(config.PYRO_CHANNEL_2, HIGH);
+          digitalWrite(config.PYRO_CHANNEL_2, HIGH);
           Serial.println("Pyro channel 2 fired");
         }
       }
@@ -214,12 +218,12 @@ void Actions::runPyroChannelManagerAction(Config &config)
         // Disable the pyro channel
         if (i == 0)
         {
-          diigtalWrite(config.PYRO_CHANNEL_1, LOW);
+          digitalWrite(config.PYRO_CHANNEL_1, LOW);
           Serial.println("Pyro channel 1 turned off");
         }
         else if (i == 1)
         {
-          diigtalWrite(config.PYRO_CHANNEL_2, LOW);
+          digitalWrite(config.PYRO_CHANNEL_2, LOW);
           Serial.println("Pyro channel 2 turned off");
         }
 
@@ -338,6 +342,7 @@ String Actions::createLoggablePacket(Sensors &sensors, Navigation &navigation)
     packet += ",";
     packet += String(navigation.navigation_data.ranging_position.height, 2);
     packet += ",";
+    // TODO: Add Heater/PID data
     // MISC
     packet += String(millis());
     packet += ",";

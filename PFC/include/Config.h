@@ -248,12 +248,37 @@ public:
     const int PC_BAUDRATE = 115200;
 
     // HEATER
-    const int HEATER_MOSFET = 16; // mosfet 1
-
     // Heater current
     const float HEATER_CURR_SENS_PIN = 27;
     const float HEATER_CURR_CONVERSION_FACTOR = 3.3 * 3.1251;
     const float HEATER_RESISTOR_VALUE = 1.1;
+
+    // Heater PID config
+    struct Heater_Config
+    {
+      int heater_pin;
+      float Kp;
+      float Ki;
+      float Kd;
+      float Kp_limit;
+      float Ki_limit;
+      float Kd_limit;
+      int pwm_min;
+      int pwm_max;
+      float target_temp;
+    };
+    Heater_Config heater_config = {
+      .heater_pin = 16,
+      .Kp = 10,
+      .Ki = 0.000025,
+      .Kd = 10000,
+      .Kp_limit = 1000,
+      .Ki_limit = 1000,
+      .Kd_limit = 500,
+      .pwm_min = 0,
+      .pwm_max = 1000,
+      .target_temp = 35,
+    };
 
     // Parachute
     const int PYRO_CHANNEL_1 = 19;

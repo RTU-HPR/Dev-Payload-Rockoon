@@ -3,20 +3,26 @@
 bool Navigation::beginGps(const Gps_Wrapper::Gps_Config_I2C &gps_config)
 {
     _gps = Gps_Wrapper(nullptr, "GPS");
-    unsigned long start = millis();
-    // if you ever need to rest module might be different pin on V2
-    // pinMode(22, OUTPUT_12MA);
-    // digitalWrite(22, LOW);
-    // delay(1000);
-    // digitalWrite(22, HIGH);
-    // delay(1000);
-    // digitalWrite(22, LOW);
+    unsigned long start = millis();    
     while (!_gps.begin(gps_config))
     {
         if (millis() - start > 10000)
         {
-            Serial.println("GPS begin failed");
-            return false;
+            Serial.println("Auto GPS begin failed");
+            Serial.println("Reseting GPS module");
+            // Reset the gps module
+            pinMode(22, OUTPUT_12MA);
+            digitalWrite(22, LOW);
+            delay(1000);
+            digitalWrite(22, HIGH);
+            delay(1000);
+            digitalWrite(22, LOW);
+            if (!_gps.begin(gps_config))
+            {
+                Serial.println("GPS begin failed after reset");
+                return false;
+            }
+            return true;
         }
         // Serial.println("GPS begin failed, retrying");
     }

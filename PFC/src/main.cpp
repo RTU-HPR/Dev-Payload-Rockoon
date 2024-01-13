@@ -30,6 +30,6 @@ void setup()
 void loop()
 {
   lastLoopMillis = millis();
-  payload.actions.runAllActions(payload.sensors, payload.navigation, payload.communication, payload.logging, payload.config);
+  payload.actions.runAllActions(payload.sensors, payload.navigation, payload.communication, payload.logging, payload.heater, payload.config);
   loopTime = millis() - lastLoopMillis;
 }

@@ -5,6 +5,7 @@
 #include <Actions.h>
 #include <Communication.h>
 #include <Logging.h>
+#include <Heater.h>
 
 class Payload
 {
@@ -21,6 +22,7 @@ class Payload
     Actions actions;
     Communication communication;
     Logging logging;
+    Heater heater;
 
     /**
      * @brief Initialise the PFC

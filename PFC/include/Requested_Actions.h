@@ -1,12 +1,7 @@
 #include <Actions.h>
 
-void Actions::runRequestedActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config)
+void Actions::runRequestedActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Heater &heater, Config &config)
 {
-  if (!requestedActionEnabled)
-  {
-    return;
-  }
-
   // Check if the communication cycle is within the response send time
   if (!(millis() - lastCommunicationCycle >= config.COMMUNICATION_RESPONSE_SEND_TIME && millis() - lastCommunicationCycle <= config.COMMUNICATION_ESSENTIAL_DATA_SEND_TIME))
   {
@@ -19,15 +14,11 @@ void Actions::runRequestedActions(Sensors &sensors, Navigation &navigation, Comm
   }
   if (completeDataRequestActionEnabled)
   {
-    runCompleteDataRequestAction(sensors, navigation, communication, config);
+    runCompleteDataRequestAction(sensors, navigation, communication, heater, config);
   }
   if (formatStorageActionEnabled)
   {
     runFormatStorageAction(communication, logging, config);
-  }
-  if (heaterSetActionEnabled)
-  {
-    runHeaterSetAction(communication, config);
   }
   if (pyroFireActionEnabled)
   {
@@ -47,12 +38,11 @@ void Actions::runInfoErrorSendAction(Communication &communication, Logging &logg
   }
   infoErrorResponseId++;
   infoErrorRequestActionEnabled = false;
-  requestedActionEnabled = false;
 }
 
-void Actions::runCompleteDataRequestAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config)
+void Actions::runCompleteDataRequestAction(Sensors &sensors, Navigation &navigation, Communication &communication, Heater &heater, Config &config)
 {
-  String msg = createCompleteDataPacket(sensors, navigation, config);
+  String msg = createCompleteDataPacket(sensors, navigation, heater, config);
   communication.msgToUkhas(msg, config);
   if (!communication.sendRadio(msg))
   {
@@ -60,10 +50,9 @@ void Actions::runCompleteDataRequestAction(Sensors &sensors, Navigation &navigat
   }
   completeDataResponseId++;
   completeDataRequestActionEnabled = false;
-  requestedActionEnabled = false;
 }
 
-String Actions::createCompleteDataPacket(Sensors &sensors, Navigation &navigation, Config &config)
+String Actions::createCompleteDataPacket(Sensors &sensors, Navigation &navigation, Heater &heater, Config &config)
 {
   String packet = "";
   packet += config.PFC_COMPLETE_DATA_RESPONSE;
@@ -78,7 +67,7 @@ String Actions::createCompleteDataPacket(Sensors &sensors, Navigation &navigatio
   packet += ",";
   packet += String(sensors.data.onBoardBaro.pressure);
   packet += ",";
-  packet += "0"; // Heater power, fix with actual data
+  packet += String(heater.getHeaterPwm());
   packet += ",";
   packet += String(navigation.navigation_data.ranging[0].distance, 1);
   packet += ",";
@@ -115,21 +104,6 @@ void Actions::runFormatStorageAction(Communication &communication, Logging &logg
   }
   formatResponseId++;
   formatStorageActionEnabled = false;
-  requestedActionEnabled = false;
-}
-
-void Actions::runHeaterSetAction(Communication &communication, Config &config)
-{
-  // need to implement heater mode setting
-  String msg = config.PFC_HEATER_RESPONSE + "," + heaterResponseId + "," + "1";
-  communication.msgToUkhas(msg, config);
-  if (!communication.sendRadio(msg))
-  {
-    return;
-  }
-  heaterResponseId++;
-  heaterSetActionEnabled = false;
-  requestedActionEnabled = false;
 }
 
 void Actions::runPyroFireAction(Communication &communication, Config &config)
@@ -142,5 +116,4 @@ void Actions::runPyroFireAction(Communication &communication, Config &config)
   }
   pyroResponseId++;
   infoErrorRequestActionEnabled = false;
-  requestedActionEnabled = false;
 }
