@@ -13,8 +13,6 @@ class Payload
      * @brief Initialise the HardwareSerial, SPI, I2C communication busses
     */
     bool initCommunicationBusses();
-
-    String errorString = "";
     
   public:
     Config config;

@@ -12,7 +12,7 @@ class Actions
 {
 private:
     // Prerequisite functions
-    String createEssentialDataPacket(Sensors &sensors, Navigation &navigation, Config &config);
+    String createEssentialDataPacket(Sensors &sensors, Navigation &navigation, Logging &logging, Config &config);
     String createCompleteDataPacket(Sensors &sensors, Navigation &navigation, Config &config);
     String createLoggablePacket(Sensors &sensors, Navigation &navigation);
     unsigned long loggable_packed_id = 1;
@@ -43,7 +43,7 @@ private:
     unsigned long pyroChannelFireTimes[2] = {0, 0};
 
     // Timed actions
-    void runEssentialDataSendAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config);
+    void runEssentialDataSendAction(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config);
     bool dataEssentialSendActionEnabled = true;
     uint16_t dataEssentialResponseId = 0;
 
@@ -73,7 +73,7 @@ private:
 
     void runContinousActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config);
 
-    void runTimedActions(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config);
+    void runTimedActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config);
 
     void runRequestedActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config);
 

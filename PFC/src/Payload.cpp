@@ -12,8 +12,8 @@ bool Payload::initCommunicationBusses()
   }
   else
   {
-    
-    errorString =+ "Wire0 begin fail | ";
+    String errorString = "Wire0 begin fail";
+    logging.recordError(errorString);
     success = false;
   }
 
@@ -25,7 +25,8 @@ bool Payload::initCommunicationBusses()
   }
   else
   {
-    errorString =+ "Wire1 begin fail | ";
+    String errorString = "Wire1 begin fail";
+    logging.recordError(errorString);
     success = false;
   }
 
@@ -37,7 +38,8 @@ bool Payload::initCommunicationBusses()
   }
   else
   {
-    errorString =+ "SPI0 begin fail | ";
+    String errorString = "SPI begin fail";
+    logging.recordError(errorString);
     success = false;
   }
 
@@ -76,7 +78,8 @@ void Payload::begin()
   // Initialize the SD card
   if (!logging.begin(config))
   {
-    errorString =+ "SD begin fail | ";
+    String errorString = "SD begin fail";
+    logging.recordError(errorString);
   }
   else
   {
@@ -85,7 +88,8 @@ void Payload::begin()
     // Read config file
     if (!logging.readConfig(config))
     {
-      errorString =+ "New config file created | ";
+      String infoString = "New config file created";
+      logging.recordInfo(infoString);
     }
     else
     {
@@ -96,7 +100,8 @@ void Payload::begin()
   // Initialise the radio
   if (!communication.beginRadio(config))
   {
-    errorString =+ "Radio begin fail | ";
+    String errorString = "Radio begin fail";
+    logging.recordError(errorString);
   }
   else
   {
@@ -106,16 +111,25 @@ void Payload::begin()
   Serial.println();
   
   // Send inital error string
-  if (errorString != "")
+  if (!logging.infoErrorQueueEmpty())
   {
-    Serial.println("INITAL ERRORS: " + errorString);
+    String infoError = "";
+    while (!logging.infoErrorQueueEmpty())
+    {
+      infoError += logging.readFromInfoErrorQueue();
+      if (!logging.infoErrorQueueEmpty())
+      {
+        infoError += ",";
+      }
+    }
+    Serial.println("INITAL INFO/ERROR: " + infoError);
     Serial.println();
-    logging.writeError(errorString);
-    communication.sendError(errorString);
+    logging.writeError(infoError);
+    communication.sendError(infoError);
   }
 
   // Initialise all sensors
-  if (!sensors.begin(config))
+  if (!sensors.begin(logging, config))
   {
     Serial.println("Error initializing sensors");
   }
@@ -125,21 +139,30 @@ void Payload::begin()
   }
 
   // Send inital error string
-  if (sensors.sensorErrorString != "")
+  if (!logging.infoErrorQueueEmpty())
   {
-    Serial.println("SENSOR ERRORS: " + errorString);
+    String infoError = "";
+    while (!logging.infoErrorQueueEmpty())
+    {
+      infoError += logging.readFromInfoErrorQueue();
+      if (!logging.infoErrorQueueEmpty())
+      {
+        infoError += ",";
+      }
+    }
+    Serial.println("SENSOR ERROR: " + infoError);
     Serial.println();
-    logging.writeError(errorString);
-    communication.sendError(errorString);
+    logging.writeError(infoError);
+    communication.sendError(infoError);
   }
 
   // Initialise GPS
   if (!navigation.beginGps(config.gps_config))
   {
-    String error = "GPS begin fail";
-    Serial.println(error);
-    logging.writeError(error);
-    communication.sendError(error);
+    String errorString = "GPS begin fail";
+    Serial.println(errorString);
+    logging.recordError(errorString);
+    communication.sendError(errorString);
   }
   else
   {
@@ -149,10 +172,10 @@ void Payload::begin()
   // Initialise ranging
   if (!navigation.beginRanging(config.ranging_device, config.ranging_mode))
   {
-    String error = "Ranging begin fail";
-    Serial.println(error);
-    logging.writeError(error);
-    communication.sendError(error);
+    String errorString = "Ranging begin fail";
+    Serial.println(errorString);
+    logging.recordError(errorString);
+    communication.sendError(errorString);
   }
   else
   {

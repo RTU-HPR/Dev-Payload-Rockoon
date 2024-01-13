@@ -14,7 +14,7 @@ void Actions::runAllActions(Sensors &sensors, Navigation &navigation, Communicat
     // Serial.println("Continous actions time: " + String(millis() - last_time_1) + "ms");
     // Do ranging and send telemetry data
     // last_time_1 = millis();
-    runTimedActions(sensors, navigation, communication, config);
+    runTimedActions(sensors, navigation, communication, logging, config);
     // Serial.println("Timed actions time: " + String(millis() - last_time_1) + "ms");
 
     // Do actions requested by a command

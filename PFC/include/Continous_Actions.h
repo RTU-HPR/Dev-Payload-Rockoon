@@ -90,21 +90,18 @@ void Actions::runCommandReceiveAction(Communication &communication, Logging &log
     if (msg.substring(0, config.PFC_INFO_ERROR_REQUEST.length()) == config.PFC_INFO_ERROR_REQUEST)
     {
       infoErrorRequestActionEnabled = true;
-      // get BS time epoch
       String values[2];
       logging.parseString(msg, values, 2);
     }
     else if (msg.substring(0, config.PFC_COMPLETE_DATA_REQUEST.length()) == config.PFC_COMPLETE_DATA_REQUEST)
     {
       completeDataRequestActionEnabled = true;
-      // get BS time epoch
       String values[2];
       logging.parseString(msg, values, 2);
     }
     else if (msg.substring(0, config.PFC_FORMAT_REQUEST.length()) == config.PFC_FORMAT_REQUEST)
     {
       formatStorageActionEnabled = true;
-      // get BS time epoch
       String values[2];
       logging.parseString(msg, values, 2);
     }
@@ -113,17 +110,14 @@ void Actions::runCommandReceiveAction(Communication &communication, Logging &log
       heaterSetActionEnabled = true;
       String values[3];
       logging.parseString(msg, values, 3);
-      // need to add setting of epoch
       heaterState = (bool)values[3].toInt();
     }
     else if (msg.substring(0, config.PFC_PYRO_REQUEST.length()) == config.PFC_PYRO_REQUEST)
     {
       pyroFireActionEnabled = true;
-      // get BS time epoch
       // get pyro channel
       String values[3];
       logging.parseString(msg, values, 3);
-      // need to add setting of epoch
       int pyroChannel = values[3].toInt();
     }
     else
@@ -182,7 +176,6 @@ void Actions::runGetCommunicationCycleStartAction(Navigation &navigation, Config
     Serial.println("New communication cycle started: " + String(lastCommunicationCycle));
   }
 }
-
 
 String Actions::createLoggablePacket(Sensors &sensors, Navigation &navigation)
 {

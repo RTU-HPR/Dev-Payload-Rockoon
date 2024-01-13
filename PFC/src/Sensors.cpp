@@ -1,6 +1,6 @@
 #include "Sensors.h"
 
-bool Sensors::begin(Config &config)
+bool Sensors::begin(Logging &logging, Config &config)
 {
   bool success = true;
   // Change analogRead resolution
@@ -11,7 +11,8 @@ bool Sensors::begin(Config &config)
   // Initialize port extender
   if (!beginPortExtender(config))
   {
-    sensorErrorString += "Port extender begin fail | ";
+    String errorString = "Port extender begin fail";
+    logging.recordError(errorString);
     success = false;
   }
   else
@@ -22,7 +23,8 @@ bool Sensors::begin(Config &config)
   // Initialize MS56XX
   if (!beginOnBoardBaro(config))
   {
-    sensorErrorString += "Onboard barometer begin fail | ";
+    String errorString = "Onboard barometer begin fail";
+    logging.recordError(errorString);
     success = false;
   }
   else
@@ -33,7 +35,8 @@ bool Sensors::begin(Config &config)
   // Initialize IMU
   if (!beginImu(config))
   {
-    sensorErrorString += "IMU begin fail | ";
+    String errorString = "IMU begin fail";
+    logging.recordError(errorString);
     success = false;
   }
   else
@@ -44,7 +47,8 @@ bool Sensors::begin(Config &config)
   // Initialize thermistor
   if (!beginOutsideThermistor(config))
   {
-    sensorErrorString += "Thermistor begin fail | ";
+    String errorString = "Thermistor begin fail";
+    logging.recordError(errorString);
     success = false;
   }
   else
@@ -55,7 +59,8 @@ bool Sensors::begin(Config &config)
   // Initialize battery voltage reader
   if (!beginBatteryVoltageReader(config))
   {
-    sensorErrorString += "Voltage sense begin fail | ";
+    String errorString = "Voltage sense begin fail";
+    logging.recordError(errorString);
     success = false;
   }
   else
@@ -67,7 +72,8 @@ bool Sensors::begin(Config &config)
   // Initialize container barometer
   if (!beginContainerBaro(config))
   {
-    // sensorErrorString += "Container barometer begin fail | ";
+    // String errorString = "Container barometer begin fail";
+    // logging.recordError(errorString);
     // success = false; // Disabled for now, since the sensor is not connected
   }
   else
@@ -78,7 +84,8 @@ bool Sensors::begin(Config &config)
   // Initialize container temperature sensor
   if (!beginContainerTemperatureSensor(config))
   {
-    // sensorErrorString += "Container temperature begin fail | ";
+    // String errorString = "Container temperature begin fail";
+    // logging.recordError(errorString);
     // success = false; // Disabled for now, since the sensor is not connected
   }
   else

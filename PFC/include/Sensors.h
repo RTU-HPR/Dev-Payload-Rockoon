@@ -1,5 +1,6 @@
 #pragma once
 #include <Config.h>
+#include <Logging.h>
 
 class Sensors
 {
@@ -105,7 +106,7 @@ public:
    * @param config The configuration object containing the sensor settings.
    * @return True if the initialization is successful, false otherwise.
    */
-  bool begin(Config &config);
+  bool begin(Logging &logging, Config &config);
 
   /**
    * @brief Reads data from all sensors.

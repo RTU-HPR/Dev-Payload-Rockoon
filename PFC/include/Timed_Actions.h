@@ -1,6 +1,6 @@
 #include <Actions.h>
 
-void Actions::runTimedActions(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config)
+void Actions::runTimedActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config)
 {
   // Only start timed actions 10 seconds after turning on to make sure everything is initialised
   if (millis() < config.TIMED_ACTION_INITIAL_DELAY)
@@ -11,15 +11,15 @@ void Actions::runTimedActions(Sensors &sensors, Navigation &navigation, Communic
   // Using gps time and millis for redundancy purposes
   if (dataEssentialSendActionEnabled)
   {
-    runEssentialDataSendAction(sensors, navigation, communication, config);
+    runEssentialDataSendAction(sensors, navigation, communication, logging, config);
   }
 }
 
-void Actions::runEssentialDataSendAction(Sensors &sensors, Navigation &navigation, Communication &communication, Config &config)
+void Actions::runEssentialDataSendAction(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config)
 {
   if (millis() - lastCommunicationCycle >= config.COMMUNICATION_ESSENTIAL_DATA_SEND_TIME && millis() - lastCommunicationCycle <= config.COMMUNICATION_CYCLE_INTERVAL)
   {
-    String msg = createEssentialDataPacket(sensors, navigation, config);
+    String msg = createEssentialDataPacket(sensors, navigation, logging, config);
     communication.msgToUkhas(msg, config);
     if (!communication.sendRadio(msg))
     {
@@ -31,7 +31,7 @@ void Actions::runEssentialDataSendAction(Sensors &sensors, Navigation &navigatio
   }
 }
 
-String Actions::createEssentialDataPacket(Sensors &sensors, Navigation &navigation, Config &config)
+String Actions::createEssentialDataPacket(Sensors &sensors, Navigation &navigation, Logging &logging, Config &config)
 {
   String packet = "";
   packet += config.PFC_ESSENTIAL_DATA_RESPONSE;
@@ -48,18 +48,9 @@ String Actions::createEssentialDataPacket(Sensors &sensors, Navigation &navigati
   packet += ",";
   packet += String(navigation.navigation_data.gps.satellites);
   packet += ",";
-  packet += "2500"; // Fix time since last gps, fix with actual data
+  packet += String(navigation.navigation_data.gps.epoch_time);
   packet += ",";
-  if (navigation.navigation_data.gps.epoch_time == 0)
-  {
-    packet += "0";
-  }
-  else
-  {
-    packet += "1";
-  }
-  packet += ",";
-  packet += "0"; // Info/error in queue bool, fix with actual data
+  packet += String(!logging.infoErrorQueueEmpty());
 
   return packet;
 }

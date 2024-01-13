@@ -5,6 +5,7 @@
 #include <Wire.h>
 #include <LittleFS.h>
 #include <SDFS.h>
+#include <cppQueue.h>
 
 // Public sensor libraries
 #include <PCF8575.h>
@@ -212,6 +213,11 @@ public:
         .i2c_address = 0x4B, // or 0x4A
     };
 
+    // Info/error queue
+    #define	QUEUE_IMPLEMENTATION	FIFO
+    #define INFO_ERROR_QUEUE_SIZE 20
+    #define INFO_ERROR_MAX_LENGTH 100
+    
     // Watchdog
     const int WATCHDOG_TIMER = 8000; // Max is 8400
 
