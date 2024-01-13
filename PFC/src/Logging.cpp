@@ -14,6 +14,21 @@ bool Logging::begin(Config &config)
   return true;
 }
 
+bool Logging::formatSdCard(Config &config)
+{
+  if (!sd_card_wrapper.get_initialized())
+  {
+    return false;
+  }
+
+  if (!sd_card_wrapper.clean_storage(config.sd_card_config))
+  {
+    Serial.println("SD card format failed!");
+    return false;
+  }
+  return true;
+}
+
 bool Logging::addToInfoErrorQueue(String &message)
 {
   // Check if the size of message is within the limit and truncate if necessary

@@ -2,44 +2,47 @@
 
 void Actions::runContinousActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Config &config)
 {
-  // last_time_2 = millis();
-  // Run the command receive action
+  // Receive any commands
   if (commandReceiveActionEnabled)
   {
     runCommandReceiveAction(communication, logging, config);
   }
-  // Serial.println("Command receive action time: " + String(millis() - last_time_2) + "ms");
-  // last_time_2 = millis();
-  // Run the sensor action
-  if (sensorActionEnabled)
-  {
-    runSensorAction(sensors);
-  }
-  // Serial.println("Sensor action time: " + String(millis() - last_time_2) + "ms");
-  // last_time_2 = millis();
-  // Run the navigation action
-  if (gpsActionEnabled)
-  {
-    runGpsAction(navigation);
-  }
-  // Run the ranging the set time before data send action
-  if (rangingSendActionEnabled)
-  {
-    runRangingAction(navigation, config);
-  }
+
   // Check if the communication cycle should be started
   if (getCommunicationCycleStartActionEnabled)
   {
     runGetCommunicationCycleStartAction(navigation, config);
   }
-  // Serial.println("GPS action time: " + String(millis() - last_time_2) + "ms");
-  // last_time_2 = millis();
+
+  // Run the sensor action
+  if (sensorActionEnabled)
+  {
+    runSensorAction(sensors);
+  }
+
+  // Run the GPS action
+  if (gpsActionEnabled)
+  {
+    runGpsAction(navigation);
+  }
+
+  // Run the ranging action
+  if (rangingSendActionEnabled)
+  {
+    runRangingAction(navigation, config);
+  }
+
   // Run the logging action
   if (loggingActionEnabled)
   {
     runLoggingAction(logging, navigation, sensors);
   }
-  // Serial.println("Logging action time: " + String(millis() - last_time_2) + "ms");
+
+  // Run the pyro channel manager action
+  if (pyroChannelManagerActionEnabled)
+  {
+    runPyroChannelManagerAction(config);
+  }
 }
 
 void Actions::runCommandReceiveAction(Communication &communication, Logging &logging, Config &config)
@@ -90,20 +93,14 @@ void Actions::runCommandReceiveAction(Communication &communication, Logging &log
     if (msg.substring(0, config.PFC_INFO_ERROR_REQUEST.length()) == config.PFC_INFO_ERROR_REQUEST)
     {
       infoErrorRequestActionEnabled = true;
-      String values[2];
-      logging.parseString(msg, values, 2);
     }
     else if (msg.substring(0, config.PFC_COMPLETE_DATA_REQUEST.length()) == config.PFC_COMPLETE_DATA_REQUEST)
     {
       completeDataRequestActionEnabled = true;
-      String values[2];
-      logging.parseString(msg, values, 2);
     }
     else if (msg.substring(0, config.PFC_FORMAT_REQUEST.length()) == config.PFC_FORMAT_REQUEST)
     {
       formatStorageActionEnabled = true;
-      String values[2];
-      logging.parseString(msg, values, 2);
     }
     else if (msg.substring(0, config.PFC_HEATER_REQUEST.length()) == config.PFC_HEATER_REQUEST)
     {
@@ -115,10 +112,21 @@ void Actions::runCommandReceiveAction(Communication &communication, Logging &log
     else if (msg.substring(0, config.PFC_PYRO_REQUEST.length()) == config.PFC_PYRO_REQUEST)
     {
       pyroFireActionEnabled = true;
-      // get pyro channel
+
+      // Get the pyro channel
       String values[3];
       logging.parseString(msg, values, 3);
+
+      // Set the appropriate pyro channel flag
       int pyroChannel = values[3].toInt();
+      if (pyroChannel == 1)
+      {
+        pyroChannelShouldBeFired[0] = true;
+      }
+      else if (pyroChannel == 2)
+      {
+        pyroChannelShouldBeFired[1] = true;
+      }
     }
     else
     {
@@ -174,6 +182,51 @@ void Actions::runGetCommunicationCycleStartAction(Navigation &navigation, Config
     dataEssentialSendActionEnabled = true;
     requestedActionEnabled = true;
     Serial.println("New communication cycle started: " + String(lastCommunicationCycle));
+  }
+}
+
+void Actions::runPyroChannelManagerAction(Config &config)
+{
+  // Check if the pyro channel should be fired
+  for (int i = 0; i < 2; i++)
+  {
+    if (pyroChannelShouldBeFired[i])
+    {
+      // If the pyro channel has not been fired yet, enable it
+      if (pyroChannelFireTimes[i] == 0)
+      {
+        pyroChannelFireTimes[i] = millis();
+        if (i == 0)
+        {
+          diigtalWrite(config.PYRO_CHANNEL_1, HIGH);
+          Serial.println("Pyro channel 1 fired");
+        }
+        else if (i == 1)
+        {
+          diigtalWrite(config.PYRO_CHANNEL_2, HIGH);
+          Serial.println("Pyro channel 2 fired");
+        }
+      }
+
+      // Check if the pyro channel should be toggled off
+      if (millis() - pyroChannelFireTimes[i] >= config.PYRO_CHANNEL_FIRE_TIME)
+      {
+        // Disable the pyro channel
+        if (i == 0)
+        {
+          diigtalWrite(config.PYRO_CHANNEL_1, LOW);
+          Serial.println("Pyro channel 1 turned off");
+        }
+        else if (i == 1)
+        {
+          diigtalWrite(config.PYRO_CHANNEL_2, LOW);
+          Serial.println("Pyro channel 2 turned off");
+        }
+
+        // Reset the pyro channel flag, but keep the fire time as it will not be fired again
+        pyroChannelShouldBeFired[i] = false;
+      }
+    }
   }
 }
 

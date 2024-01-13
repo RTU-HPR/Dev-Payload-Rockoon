@@ -73,7 +73,16 @@ void Payload::begin()
   // Enable sensor power
   pinMode(config.SENSOR_POWER_ENABLE_PIN, OUTPUT_12MA);
   digitalWrite(config.SENSOR_POWER_ENABLE_PIN, HIGH);
+
   Serial.println("Sensor power enabled");
+
+  // Set the pyro channels to output and pull them low
+  pinMode(config.PYRO_CHANNEL_1, OUTPUT_12MA);
+  pinMode(config.PYRO_CHANNEL_2, OUTPUT_12MA);
+  digitalWrite(config.PYRO_CHANNEL_1, LOW);
+  digitalWrite(config.PYRO_CHANNEL_2, LOW);
+
+  Serial.println("Pyro channels set to output and pulled low");
 
   // Initialize the SD card
   if (!logging.begin(config))

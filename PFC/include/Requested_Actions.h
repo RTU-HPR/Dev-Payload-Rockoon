@@ -6,10 +6,9 @@ void Actions::runRequestedActions(Sensors &sensors, Navigation &navigation, Comm
   {
     return;
   }
-  if (millis() - lastCommunicationCycle >= config.COMMUNICATION_RESPONSE_SEND_TIME && millis() - lastCommunicationCycle <= config.COMMUNICATION_ESSENTIAL_DATA_SEND_TIME)
-  {
-  }
-  else
+
+  // Check if the communication cycle is within the response send time
+  if (!(millis() - lastCommunicationCycle >= config.COMMUNICATION_RESPONSE_SEND_TIME && millis() - lastCommunicationCycle <= config.COMMUNICATION_ESSENTIAL_DATA_SEND_TIME))
   {
     return;
   }
@@ -39,7 +38,7 @@ void Actions::runRequestedActions(Sensors &sensors, Navigation &navigation, Comm
 // Timed and Requested actions
 void Actions::runInfoErrorSendAction(Communication &communication, Logging &logging, Config &config)
 {
-  String infoErrorMSG = "!Sample error";
+  String infoErrorMSG = logging.readFromInfoErrorQueue();
   String msg = config.PFC_INFO_ERROR_RESPONSE + "," + infoErrorResponseId + "," + infoErrorMSG;
   communication.msgToUkhas(msg, config);
   if (!communication.sendRadio(msg))
@@ -96,9 +95,19 @@ String Actions::createCompleteDataPacket(Sensors &sensors, Navigation &navigatio
 
 void Actions::runFormatStorageAction(Communication &communication, Logging &logging, Config &config)
 {
-  // need to implement formatting of SD card
+  // Format the SD card
+  bool success;
+  if (logging.formatSdCard(config))
+  {
+    success = true;
+  }
+  else
+  {
+    success = false;
+  }
 
-  String msg = config.PFC_FORMAT_RESPONSE + "," + formatResponseId + "," + "1";
+  // Send the response
+  String msg = config.PFC_FORMAT_RESPONSE + "," + formatResponseId + "," + String(success);
   communication.msgToUkhas(msg, config);
   if (!communication.sendRadio(msg))
   {
@@ -125,8 +134,6 @@ void Actions::runHeaterSetAction(Communication &communication, Config &config)
 
 void Actions::runPyroFireAction(Communication &communication, Config &config)
 {
-  // need to implement pyro firing
-
   String msg = config.PFC_PYRO_RESPONSE + "," + pyroResponseId + "," + "1";
   communication.msgToUkhas(msg, config);
   if (!communication.sendRadio(msg))

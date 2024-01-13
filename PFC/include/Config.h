@@ -256,8 +256,8 @@ public:
     const float HEATER_RESISTOR_VALUE = 1.1;
 
     // Parachute
-    const int MOSFET_1 = 19;
-    const int MOSFET_2 = 18; // mosfet 2
+    const int PYRO_CHANNEL_1 = 19;
+    const int PYRO_CHANNEL_2 = 18;
     const int PYRO_CHANNEL_FIRE_TIME = 5000;
 
     // Actions

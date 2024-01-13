@@ -99,4 +99,11 @@ public:
    * @param maxSize Maximum number of strings to parse
    */
   void parseString(String &input, String *values, size_t maxSize);
+
+  /**
+   * @brief Format the SD card
+   * @param config Config object
+   * @return Whether the SD card was formatted successfully
+   */
+  bool formatSdCard(Config &config);
 };
