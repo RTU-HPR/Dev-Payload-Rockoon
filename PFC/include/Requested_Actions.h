@@ -10,7 +10,7 @@ void Actions::runRequestedActions(Sensors &sensors, Navigation &navigation, Comm
 
   if (infoErrorRequestActionEnabled)
   {
-    runInfoErrorSendAction(communication, logging, config);
+    runInfoErrorSendAction(communication, logging, navigation, config);
   }
   if (completeDataRequestActionEnabled)
   {
@@ -18,47 +18,58 @@ void Actions::runRequestedActions(Sensors &sensors, Navigation &navigation, Comm
   }
   if (formatStorageActionEnabled)
   {
-    runFormatStorageAction(communication, logging, config);
+    runFormatStorageAction(communication, logging, navigation, config);
   }
   if (pyroFireActionEnabled)
   {
-    runPyroFireAction(communication, config);
+    runPyroFireAction(communication, navigation, config);
   }
 }
 
 // Timed and Requested actions
-void Actions::runInfoErrorSendAction(Communication &communication, Logging &logging, Config &config)
+void Actions::runInfoErrorSendAction(Communication &communication, Logging &logging, Navigation &navigation, Config &config)
 {
-  String infoErrorMSG = logging.readFromInfoErrorQueue();
-  String msg = config.PFC_INFO_ERROR_RESPONSE + "," + infoErrorResponseId + "," + infoErrorMSG;
-  communication.msgToUkhas(msg, config);
-  if (!communication.sendRadio(msg))
+  String msg_str = logging.readFromInfoErrorQueue();
+
+  uint16_t ccsds_packet_length;
+  byte *ccsds_packet = create_ccsds_packet(config.PFC_INFO_ERROR_RESPONSE, infoErrorResponseId, navigation.navigation_data.gps.epoch_time, 0, msg_str, ccsds_packet_length);
+
+  // Send packet
+  if (!communication.sendRadio(ccsds_packet, ccsds_packet_length))
   {
+    // Free memory
+    delete[] ccsds_packet; // VERY IMPORTANT, otherwise a significant memory leak will occur
     return;
   }
   infoErrorResponseId++;
   infoErrorRequestActionEnabled = false;
+  // Free memory
+  delete[] ccsds_packet; // VERY IMPORTANT, otherwise a significant memory leak will occur
 }
 
 void Actions::runCompleteDataRequestAction(Sensors &sensors, Navigation &navigation, Communication &communication, Heater &heater, Config &config)
 {
-  String msg = createCompleteDataPacket(sensors, navigation, heater, config);
-  communication.msgToUkhas(msg, config);
-  if (!communication.sendRadio(msg))
+  String msg_str = createCompleteDataPacket(sensors, navigation, heater, config);
+
+  uint16_t ccsds_packet_length;
+  byte *ccsds_packet = create_ccsds_packet(config.PFC_COMPLETE_DATA_RESPONSE, completeDataResponseId, navigation.navigation_data.gps.epoch_time, 0, msg_str, ccsds_packet_length);
+
+  // Send packet
+  if (!communication.sendRadio(ccsds_packet, ccsds_packet_length))
   {
+    // Free memory after the packet has been sent
+    delete[] ccsds_packet; // VERY IMPORTANT, otherwise a significant memory leak will occur
     return;
   }
   completeDataResponseId++;
   completeDataRequestActionEnabled = false;
+  // Free memory
+  delete[] ccsds_packet; // VERY IMPORTANT, otherwise a significant memory leak will occur
 }
 
 String Actions::createCompleteDataPacket(Sensors &sensors, Navigation &navigation, Heater &heater, Config &config)
 {
   String packet = "";
-  packet += config.PFC_COMPLETE_DATA_RESPONSE;
-  packet += ",";
-  packet += String(completeDataResponseId);
-  packet += ",";
   packet += String(sensors.data.containerBaro.temperature, 1);
   packet += ",";
   packet += String(sensors.data.containerTemperature.temperature, 1);
@@ -82,7 +93,7 @@ String Actions::createCompleteDataPacket(Sensors &sensors, Navigation &navigatio
   return packet;
 }
 
-void Actions::runFormatStorageAction(Communication &communication, Logging &logging, Config &config)
+void Actions::runFormatStorageAction(Communication &communication, Logging &logging, Navigation &navigation, Config &config)
 {
   // Format the SD card
   bool success;
@@ -96,24 +107,39 @@ void Actions::runFormatStorageAction(Communication &communication, Logging &logg
   }
 
   // Send the response
-  String msg = config.PFC_FORMAT_RESPONSE + "," + formatResponseId + "," + String(success);
-  communication.msgToUkhas(msg, config);
-  if (!communication.sendRadio(msg))
+  String msg_str = String(success);
+
+  uint16_t ccsds_packet_length;
+  byte *ccsds_packet = create_ccsds_packet(config.PFC_COMPLETE_DATA_RESPONSE, formatResponseId, navigation.navigation_data.gps.epoch_time, 0, msg_str, ccsds_packet_length);
+
+  // Send packet
+  if (!communication.sendRadio(ccsds_packet, ccsds_packet_length))
   {
+    // Free memory after the packet has been sent
+    delete[] ccsds_packet; // VERY IMPORTANT, otherwise a significant memory leak will occur
     return;
   }
   formatResponseId++;
   formatStorageActionEnabled = false;
+  // Free memory
+  delete[] ccsds_packet; // VERY IMPORTANT, otherwise a significant memory leak will occur
 }
 
-void Actions::runPyroFireAction(Communication &communication, Config &config)
+void Actions::runPyroFireAction(Communication &communication, Navigation &navigation, Config &config)
 {
-  String msg = config.PFC_PYRO_RESPONSE + "," + pyroResponseId + "," + "1";
-  communication.msgToUkhas(msg, config);
-  if (!communication.sendRadio(msg))
+  String msg_str = "1"; // Success
+
+  uint16_t ccsds_packet_length;
+  byte *ccsds_packet = create_ccsds_packet(config.PFC_COMPLETE_DATA_RESPONSE, pyroResponseId, navigation.navigation_data.gps.epoch_time, 0, msg_str, ccsds_packet_length);
+
+  // Send packet
+  if (!communication.sendRadio(ccsds_packet, ccsds_packet_length))
   {
+    // Free memory after the packet has been sent
+    delete[] ccsds_packet; // VERY IMPORTANT, otherwise a significant memory leak will occur
     return;
   }
   pyroResponseId++;
-  infoErrorRequestActionEnabled = false;
+  // Free memory
+  delete[] ccsds_packet; // VERY IMPORTANT, otherwise a significant memory leak will occur
 }
