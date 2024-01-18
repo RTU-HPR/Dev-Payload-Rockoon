@@ -76,7 +76,7 @@ void Actions::runCommandReceiveAction(Communication &communication, Logging &log
     return;
   }
 
-  // Check if the message is not empty and the checksum is good
+  // Check if the checksum is good
   if (checksum_good)
   {
     // Print the received message
@@ -85,57 +85,58 @@ void Actions::runCommandReceiveAction(Communication &communication, Logging &log
     for (int i = 0; i < msg_length; i++)
     {
       Serial.print(msg[i], HEX);
+      Serial.print(" ");
     }
     Serial.println();
 
     // A CCSDS Telecommand packet was received
     uint16_t apid = 0;
     uint16_t sequence_count = 0;
-    uint32_t gps_epoch_time = 0;
-    uint16_t subseconds = 0;
-    byte *packet_data = new byte[msg_length - 12];
+    byte *packet_data = new byte[msg_length];
+    uint16_t packet_id = 0;
     uint16_t packet_data_length = 0;
-    parse_ccsds(msg, apid, sequence_count, gps_epoch_time, subseconds, packet_data, packet_data_length);
-    
-    Converter packet_id[1];
-    // Extract packetid, which is a uint16 value at the start of the telecommand packet data
-    extract_ccsds_data_values(packet_data, packet_id, "uint16");
+    parse_ccsds_telecommand(msg, apid, sequence_count, packet_id, packet_data, packet_data_length);
+
+    Serial.println("APID: " + String(apid));
+    Serial.println("Sequence count: " + String(sequence_count));
+    Serial.println("Packet data length: " + String(packet_data_length));
+    Serial.println("Packet ID: " + String(packet_id));
 
     // Set the action flag according to the received command
-    if (packet_id[0].i16 == 1001)
-    {
-      infoErrorRequestActionEnabled = true;
-    }
-    else if (packet_id[0].i16 == 1000)
+    if (packet_id == 1000)
     {
       completeDataRequestActionEnabled = true;
     }
-    else if (packet_id[0].i16 == 1002)
+    else if (packet_id == 1001)
+    {
+      infoErrorRequestActionEnabled = true;
+    }
+    else if (packet_id == 1002)
     {
       formatStorageActionEnabled = true;
     }
-    else if (packet_id[0].i16 == 1004)
+    else if (packet_id == 1003)
     {
       pyroFireActionEnabled = true;
 
       // Get the pyro channel
-      Converter pyroChannel[2];
+      Converter pyroChannel[1];
 
       // The first value is the packet id, and the second is the pyro channel
-      extract_ccsds_data_values(packet_data, pyroChannel, "uint16,uint8");
+      extract_ccsds_data_values(packet_data, pyroChannel, "uint8");
 
       // Set the appropriate pyro channel flag
-      if (pyroChannel[1].i8 == 1)
+      if (pyroChannel[0].i8 == 1)
       {
         pyroChannelShouldBeFired[0] = true;
       }
-      else if (pyroChannel[1].i8 == 2)
+      else if (pyroChannel[0].i8 == 2)
       {
         pyroChannelShouldBeFired[1] = true;
       }
       else
       {
-        Serial.println("Invalid pyro channel: " + String(pyroChannel[1].i8));
+        Serial.println("Invalid pyro channel: " + String(pyroChannel[0].i8));
         pyroFireActionEnabled = false;
       }
     }
@@ -153,6 +154,7 @@ void Actions::runCommandReceiveAction(Communication &communication, Logging &log
     for (int i = 0; i < msg_length; i++)
     {
       Serial.print(msg[i], HEX);
+      Serial.print(" ");
     }
     Serial.println();
   }

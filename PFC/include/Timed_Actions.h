@@ -23,7 +23,7 @@ void Actions::runEssentialDataSendAction(Sensors &sensors, Navigation &navigatio
 
     // Create packet
     uint16_t ccsds_packet_length;
-    byte *ccsds_packet = create_ccsds_packet(config.PFC_ESSENTIAL_DATA_RESPONSE, dataEssentialResponseId, navigation.navigation_data.gps.epoch_time, 0, msg_str, ccsds_packet_length);
+    byte *ccsds_packet = create_ccsds_telemetry_packet(config.PFC_ESSENTIAL_DATA_RESPONSE, dataEssentialResponseId, navigation.navigation_data.gps.epoch_time, 0, msg_str, ccsds_packet_length);
 
     // Send packet
     if (!communication.sendRadio(ccsds_packet, ccsds_packet_length))

@@ -30,16 +30,20 @@ void Actions::runRequestedActions(Sensors &sensors, Navigation &navigation, Comm
 void Actions::runInfoErrorSendAction(Communication &communication, Logging &logging, Navigation &navigation, Config &config)
 {
   String msg_str = logging.readFromInfoErrorQueue();
+  if (msg_str == "")
+  {
+    infoErrorRequestActionEnabled = false;
+    Serial.println("No info errors to send");
+    return;
+  }
 
   uint16_t ccsds_packet_length;
-  byte *ccsds_packet = create_ccsds_packet(config.PFC_INFO_ERROR_RESPONSE, infoErrorResponseId, navigation.navigation_data.gps.epoch_time, 0, msg_str, ccsds_packet_length);
+  byte *ccsds_packet = create_ccsds_telemetry_packet(config.PFC_INFO_ERROR_RESPONSE, infoErrorResponseId, navigation.navigation_data.gps.epoch_time, 0, msg_str, ccsds_packet_length);
 
   // Send packet
   if (!communication.sendRadio(ccsds_packet, ccsds_packet_length))
   {
-    // Free memory
-    delete[] ccsds_packet; // VERY IMPORTANT, otherwise a significant memory leak will occur
-    return;
+    // Do nothing for now
   }
   infoErrorResponseId++;
   infoErrorRequestActionEnabled = false;
@@ -52,7 +56,7 @@ void Actions::runCompleteDataRequestAction(Sensors &sensors, Navigation &navigat
   String msg_str = createCompleteDataPacket(sensors, navigation, heater, config);
 
   uint16_t ccsds_packet_length;
-  byte *ccsds_packet = create_ccsds_packet(config.PFC_COMPLETE_DATA_RESPONSE, completeDataResponseId, navigation.navigation_data.gps.epoch_time, 0, msg_str, ccsds_packet_length);
+  byte *ccsds_packet = create_ccsds_telemetry_packet(config.PFC_COMPLETE_DATA_RESPONSE, completeDataResponseId, navigation.navigation_data.gps.epoch_time, 0, msg_str, ccsds_packet_length);
 
   // Send packet
   if (!communication.sendRadio(ccsds_packet, ccsds_packet_length))
@@ -78,7 +82,7 @@ String Actions::createCompleteDataPacket(Sensors &sensors, Navigation &navigatio
   packet += ",";
   packet += String(sensors.data.onBoardBaro.pressure);
   packet += ",";
-  packet += String(heater.getHeaterPwm());
+  packet += String((uint32_t)heater.getHeaterPwm());
   packet += ",";
   packet += String(navigation.navigation_data.ranging[0].distance, 1);
   packet += ",";
@@ -110,7 +114,7 @@ void Actions::runFormatStorageAction(Communication &communication, Logging &logg
   String msg_str = String(success);
 
   uint16_t ccsds_packet_length;
-  byte *ccsds_packet = create_ccsds_packet(config.PFC_COMPLETE_DATA_RESPONSE, formatResponseId, navigation.navigation_data.gps.epoch_time, 0, msg_str, ccsds_packet_length);
+  byte *ccsds_packet = create_ccsds_telemetry_packet(config.PFC_COMPLETE_DATA_RESPONSE, formatResponseId, navigation.navigation_data.gps.epoch_time, 0, msg_str, ccsds_packet_length);
 
   // Send packet
   if (!communication.sendRadio(ccsds_packet, ccsds_packet_length))
@@ -130,7 +134,7 @@ void Actions::runPyroFireAction(Communication &communication, Navigation &naviga
   String msg_str = "1"; // Success
 
   uint16_t ccsds_packet_length;
-  byte *ccsds_packet = create_ccsds_packet(config.PFC_COMPLETE_DATA_RESPONSE, pyroResponseId, navigation.navigation_data.gps.epoch_time, 0, msg_str, ccsds_packet_length);
+  byte *ccsds_packet = create_ccsds_telemetry_packet(config.PFC_COMPLETE_DATA_RESPONSE, pyroResponseId, navigation.navigation_data.gps.epoch_time, 0, msg_str, ccsds_packet_length);
 
   // Send packet
   if (!communication.sendRadio(ccsds_packet, ccsds_packet_length))
