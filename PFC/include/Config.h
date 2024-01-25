@@ -22,6 +22,9 @@
 #include <Gps_Wrapper.h>
 #include <Sd_card_wrapper.h>
 
+// Our functions
+#include <Ccsds_packets.h>
+
 // Our sensor libaries
 #include <MS56XX.h>
 #include <Adc_Voltage.h>
@@ -288,23 +291,22 @@ public:
     // Actions
     const int TIMED_ACTION_INITIAL_DELAY = 10000;
     // Data send action interval
-    const int COMMUNICATION_CYCLE_INTERVAL = 20000;
-    const int COMMUNICATION_RESPONSE_SEND_TIME = 10000;
-    const int COMMUNICATION_ESSENTIAL_DATA_SEND_TIME = 18000;
+    const int COMMUNICATION_CYCLE_INTERVAL = 12000;
+    const int COMMUNICATION_RESPONSE_SEND_TIME = 5000;
+    const int COMMUNICATION_ESSENTIAL_DATA_SEND_TIME = 9000;
 
     // Sendable commands
-    const String PFC_TELEMETRY = "rtu_pfc";
-    const String PFC_ESSENTIAL_DATA_RESPONSE = "100";
-    const String PFC_INFO_ERROR_RESPONSE = "102";
-    const String PFC_COMPLETE_DATA_RESPONSE = "101";
-    const String PFC_FORMAT_RESPONSE = "103";
-    const String PFC_HEATER_RESPONSE = "104";
-    const String PFC_PYRO_RESPONSE = "105";
+    const int PFC_ESSENTIAL_DATA_RESPONSE = 100;
+    const int PFC_INFO_ERROR_RESPONSE = 102;
+    const int PFC_COMPLETE_DATA_RESPONSE = 101;
+    const int PFC_FORMAT_RESPONSE = 103;
+    const int PFC_HEATER_RESPONSE = 104;
+    const int PFC_PYRO_RESPONSE = 105;
 
     // Receiveable commands
-    const String PFC_INFO_ERROR_REQUEST = PFC_TELEMETRY + ",1001";
-    const String PFC_COMPLETE_DATA_REQUEST = PFC_TELEMETRY + ",1000";
-    const String PFC_FORMAT_REQUEST = PFC_TELEMETRY + ",1002";
-    const String PFC_HEATER_REQUEST = PFC_TELEMETRY + ",1003";
-    const String PFC_PYRO_REQUEST = PFC_TELEMETRY + ",1004";
+    const int PFC_INFO_ERROR_REQUEST = 1001;
+    const int PFC_COMPLETE_DATA_REQUEST = 1000;
+    const int PFC_FORMAT_REQUEST = 1002;
+    const int PFC_HEATER_REQUEST = 1003;
+    const int PFC_PYRO_REQUEST = 1004;
 };

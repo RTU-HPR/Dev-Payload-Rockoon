@@ -40,7 +40,7 @@ public:
   bool isHeaterEnabled() { return _heater_enabled; }
   void disableHeater() { _heater_enabled = false; }
 
-  double getHeaterPwm() { return _heater_pwm; };
+  float getHeaterPwm() { return _heater_pwm; };
   void getPidValues(float &p, float &i, float &d) {p = _proportional_term; i = _integral_term; d = _derivative_term; }
   float getCurrentTemperatureStep() { return _current_temperature_step; }
   float getTargetTemperature() { return _heater_config.target_temp; }

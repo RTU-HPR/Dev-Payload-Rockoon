@@ -14,38 +14,23 @@ bool Communication::beginRadio(Config &config)
   return true;
 }
 
-void Communication::msgToUkhas(String &msg, Config &config)
-{
-  // Add the UKHAS prefix and the callsign to start of the message
-  String ukhas_msg = "$$" + config.PFC_TELEMETRY + ",";
-  ukhas_msg += msg;
-
-  // Cheksum is calculated in the sendRadio function
-
-  // Modify the original message
-  msg = ukhas_msg;
-}
-
-bool Communication::sendRadio(String msg)
+bool Communication::sendRadio(byte *ccsds_packet, uint16_t ccsds_packet_length)
 {
   if (!_radio->get_initialized())
   {
     return false;
   }
-
-  String packet = msg;
-  // This will add the checksum, endline and dashstar characters ("*xxxx\n")
-  _radio->add_checksum(packet);
   // Send the message
-  bool status = _radio->transmit(packet);
+  bool status = _radio->transmit_bytes(ccsds_packet, ccsds_packet_length);
   return status;
 }
 
 bool Communication::sendError(String errorString)
 {
-  // Add the error prefix to the error string
-  errorString = "PFC ERROR: " + errorString;
+  // // Add the error prefix to the error string
+  // errorString = "PFC ERROR: " + errorString;
 
-  // Send the error message
-  return sendRadio(errorString);
+  // // Send the error message
+  // return sendRadio();
+  return true;
 }

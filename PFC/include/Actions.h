@@ -58,7 +58,7 @@ private:
     // Requested actions
     void runRequestedActions(Sensors &sensors, Navigation &navigation, Communication &communication, Logging &logging, Heater &heater, Config &config);
 
-    void runInfoErrorSendAction(Communication &communication, Logging &logging, Config &config);
+    void runInfoErrorSendAction(Communication &communication, Logging &logging, Navigation &navigation, Config &config);
     bool infoErrorRequestActionEnabled = false;
     uint16_t infoErrorResponseId = 0;
 
@@ -66,11 +66,11 @@ private:
     bool completeDataRequestActionEnabled = false;
     uint16_t completeDataResponseId = 0;
 
-    void runFormatStorageAction(Communication &communication, Logging &logging, Config &config);
+    void runFormatStorageAction(Communication &communication, Logging &logging, Navigation &navigation, Config &config);
     bool formatStorageActionEnabled = false;
     uint16_t formatResponseId = 0;
 
-    void runPyroFireAction(Communication &communication, Config &config);
+    void runPyroFireAction(Communication &communication, Navigation &navigation, Config &config);
     bool pyroFireActionEnabled = false;
     uint16_t pyroResponseId = 0;
 
